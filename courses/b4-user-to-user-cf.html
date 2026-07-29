@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder session 4 · Customer-to-customer (user-user) CF - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Builder session 4 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Builder track · Session 4 of 10</div>
+    <h1>User-user CF: <span class="accent">find shoppers like you, borrow their baskets</span></h1>
+    <p class="sub">The most intuitive recommender there is: find the customers most similar to you, then recommend what they bought that you have not. This session builds customer-to-customer collaborative filtering on Kirana's matrix in real Python - the user-user cosine similarity matrix, k-nearest-neighbour prediction as a weighted vote, and a top-N recommender. Then the honest part: why this approach, natural as it feels, is exactly what pushed Amazon to flip to item-to-item back in 2003.</p>
+    <div class="chip-row">
+      <span class="chip level">🟡 Builder track</span>
+      <span class="chip audience">Practitioners: analysts · data scientists · engineers</span>
+      <span class="chip audience">Python 3.10+ · a notebook</span>
+      <span class="chip time">Builds on b3</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · Neighbourhoods + similarity</span>
+      <span class="a3" style="flex:5">18-42 · Build-along: similarity + recommender</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>The most natural recommender</h2>
+    </div>
+    <p class="lede">If a friend with near-identical taste raves about a book, you will probably like it too. Customer-to-customer collaborative filtering is that instinct written as math: find the users most similar to you by their purchase history, then recommend the items they bought that you have not seen. It needs no item features and no tags - only the interactions matrix from b1. Tonight we build the whole thing on Kirana, and we meet its two famous weaknesses head on, because those weaknesses are precisely why item-to-item (which you saw in b3) took over at Amazon-scale. This is the same math the "User-user CF" button runs in the b3 live recommender - build it here, then go watch it there.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill peach">★ Run it now (Python)</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A user-user cosine similarity matrix built with scikit-learn, a function that finds any shopper's nearest neighbours, and a <code>recommend_useruser</code> that returns top-N unseen items by a weighted vote of similar users - plus a clear grasp of why user-user is intuitive but scales worse and is more cold-start-fragile than item-item.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: NEIGHBOURHOODS ============ -->
+  <section class="section" id="neighbours">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers the recsys textbook (neighbourhood CF)</span>
+      <h2>Find neighbours, then borrow their extra items <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">User-user CF is two moves. First, measure how similar every other shopper is to the target. Second, take the items those similar shoppers bought that the target has not, and rank them. The items your neighbours have that you lack become your recommendations.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 288" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Find neighbours then borrow: from a target user, find the most similar users, and their items the target lacks become recommendations">
+        <style>
+          .b4nT { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+          .b4nX { font: 400 11.5px Inter, sans-serif; fill: #DCE6FB; }
+          .b4nI { font: 700 14px Inter, sans-serif; fill: #111634; }
+          .b4nXi { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .b4nN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+          .b4nA { font: 700 22px Inter, sans-serif; fill: #C7D2E4; }
+        </style>
+        <text x="30" y="30" style="font:700 14px Inter,sans-serif;fill:#111634;">Target shopper -&gt; similar shoppers -&gt; their extra items become recs</text>
+        <rect x="24" y="52" width="180" height="150" rx="12" fill="#1E3A8A"/>
+        <text class="b4nT" x="44" y="82">Target: You</text>
+        <text class="b4nX" x="44" y="108">bought:</text>
+        <text class="b4nX" x="44" y="130">· Yoga Mat</text>
+        <text class="b4nX" x="44" y="150">· Strap</text>
+        <text class="b4nX" x="44" y="182">who is like you?</text>
+        <text class="b4nA" x="216" y="132">→</text>
+        <rect x="250" y="44" width="230" height="70" rx="10" fill="#2563EB"/>
+        <text class="b4nT" x="270" y="72">Ann · similarity 0.87</text>
+        <text class="b4nX" x="270" y="94">Mat, Strap, Bottle, Cookbook</text>
+        <rect x="250" y="122" width="230" height="70" rx="10" fill="#60A5FA"/>
+        <text class="b4nI" x="270" y="150">Ben · similarity 0.71</text>
+        <text class="b4nXi" x="270" y="172">Mat, Strap, Bottle</text>
+        <text class="b4nA" x="492" y="132">→</text>
+        <rect x="526" y="52" width="330" height="150" rx="12" fill="#FCE7F3" stroke="#DB2777" stroke-width="1.5"/>
+        <text class="b4nI" x="546" y="82">Recommend to You</text>
+        <text style="font:400 12px Inter,sans-serif;fill:#5B6480;" x="546" y="110">items neighbours have, you do not:</text>
+        <text style="font:700 13px Inter,sans-serif;fill:#6B0F3F;" x="546" y="138">1 · Bottle  (both neighbours bought)</text>
+        <text style="font:700 13px Inter,sans-serif;fill:#6B0F3F;" x="546" y="162">2 · Cookbook  (Ann, your closest)</text>
+        <text style="font:400 12px Inter,sans-serif;fill:#5B6480;" x="546" y="188">rank by summed neighbour similarity</text>
+        <rect x="24" y="240" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b4nN" x="48" y="252">Closer neighbours vote louder: Bottle wins on two votes, Cookbook rides in on Ann's high similarity.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - find the neighbours, then borrow the items you are missing</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Cosine similarity (and a word on Pearson)<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>To rank neighbours you need a number for "how alike are these two users?". Treat each user's row in the matrix as a vector and measure the angle between them:</p>
+        <ul>
+          <li><strong>Cosine similarity</strong> - the cosine of the angle between two users' item vectors. 1 = identical direction (same taste), 0 = no overlap. It ignores how <em>much</em> someone bought and focuses on the pattern, which is why it is the default for implicit data like Kirana's.</li>
+          <li><strong>Pearson correlation</strong> - cosine after subtracting each user's mean. It shines on explicit ratings, where it cancels out that some users rate generously and others harshly. For binary purchase data, cosine is the natural choice.</li>
+          <li><strong>Weighted vote</strong> - a candidate item's score is the sum of the similarities of the neighbours who bought it. More neighbours, and closer ones, push an item up.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>This is the "customers like you also bought" line</strong> in its original form. Early collaborative filtering systems computed exactly this - find your neighbourhood, aggregate their tastes. It is wonderfully explainable: you can literally say "we suggest this because shoppers with baskets like yours bought it". The catch is what happens when "shoppers like you" becomes tens of millions of rows.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Why Amazon flipped from user-user to item-item<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>User-user CF is the intuitive starting point, but it has two structural problems at scale - and the contrast with item-item (b3) is the whole lesson:</p>
+        <ul>
+          <li><strong>It scales worse.</strong> Users vastly outnumber items and change constantly - every new purchase shifts a user's vector, so the user-user similarity matrix goes stale fast and is expensive to recompute. Item-item similarities are far more stable: relationships between products barely move day to day, so you can precompute them offline.</li>
+          <li><strong>It is more cold-start-fragile.</strong> A brand-new shopper with one purchase has almost no reliable neighbours, so recommendations are weak until they build history. Item-item sidesteps this: given even one item the user just viewed, you can serve "items like this" immediately.</li>
+        </ul>
+        <p>This is precisely the argument Linden, Smith &amp; York made in <strong>Amazon.com Recommendations: Item-to-Item Collaborative Filtering</strong> (IEEE Internet Computing, 2003). Amazon moved the heavy computation to the item-item matrix so recommendations stayed fast and fresh for hundreds of millions of users. Same collaborative-filtering idea, transposed - and it won IEEE's Test-of-Time award in 2017.</p>
+        <div class="callout tip">
+          <strong>So why learn user-user at all?</strong>
+          Because it is the clearest mental model of collaborative filtering, it is genuinely useful when users far under-number items (or update rarely), and understanding its failure modes is what makes the item-item choice in b3 click. Build it, feel its limits, then know when to reach for its transpose.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE PIPELINE ============ -->
+  <section class="section" id="pipeline">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers neighbourhood-based prediction</span>
+      <h2>From similarity to a ranked list <span class="tag concept">4 min live</span></h2>
+    </div>
+    <p class="lede">The recommender is a three-stage flow. Similarity feeds a weighted score for every candidate item; the scores feed a ranked top-N of things the user has not seen.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 236" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The user-user pipeline: user-user similarity, then weighted score per candidate item, then a ranked list of unseen items">
+        <style>
+          .b4pT { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+          .b4pX { font: 400 11.5px Inter, sans-serif; fill: #DCE6FB; }
+          .b4pI { font: 700 14px Inter, sans-serif; fill: #111634; }
+          .b4pXi { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .b4pN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+          .b4pA { font: 700 22px Inter, sans-serif; fill: #C7D2E4; }
+        </style>
+        <rect x="24" y="44" width="238" height="96" rx="12" fill="#1E3A8A"/>
+        <text class="b4pT" x="44" y="76">1 · Similarity</text>
+        <text class="b4pX" x="44" y="100">cosine between the target</text>
+        <text class="b4pX" x="44" y="120">and every other user</text>
+        <text class="b4pA" x="276" y="98">→</text>
+        <rect x="312" y="44" width="238" height="96" rx="12" fill="#2563EB"/>
+        <text class="b4pT" x="332" y="76">2 · Weighted score</text>
+        <text class="b4pX" x="332" y="100">each unseen item scored by</text>
+        <text class="b4pX" x="332" y="120">summed neighbour similarity</text>
+        <text class="b4pA" x="564" y="98">→</text>
+        <rect x="600" y="44" width="256" height="96" rx="12" fill="#60A5FA"/>
+        <text class="b4pI" x="620" y="76">3 · Ranked list</text>
+        <text class="b4pXi" x="620" y="100">sort, drop items the user</text>
+        <text class="b4pXi" x="620" y="120">already has, take top-N</text>
+        <rect x="24" y="172" width="832" height="44" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b4pI" x="44" y="199">Only the target's blanks are scored - you never recommend something already in their basket.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - similarity to weighted score to a ranked list of unseen items</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>k-nearest-neighbour prediction, in words<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>You rarely use <em>all</em> other users - just the <strong>k nearest</strong> (say the 20 most similar). For each item the target has not bought, sum the similarities of the neighbours (among those k) who did buy it. That sum is the item's score; sort descending and take the top-N. It is a weighted vote where closer neighbours count for more - the k-nearest-neighbour idea applied to users.</p>
+        <p>In production you would not hand-roll this: <code>surprise</code> gives you tuned KNN CF with baselines, and <code>implicit</code> gives you fast neighbourhood and matrix models for implicit data. We build it by hand first so the library is never a black box.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO 1 ============ -->
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Demo 1 of 2</span>
+      <h2>The user-user similarity matrix <span class="tag demo">★ 11 min · everyone builds</span></h2>
+    </div>
+    <p class="lede">Build the similarity matrix with scikit-learn and find any shopper's nearest neighbours. We reuse Kirana's <code>mat</code> from b1: rows are users, columns are items, 1 = bought.</p>
+
+    <div class="steps">
+      <div class="step"><p>Rebuild Kirana's users x items matrix (same shape as b1's <code>mat</code>).</p></div>
+      <div class="step"><p>Compute pairwise cosine similarity across users with <code>cosine_similarity</code>.</p></div>
+      <div class="step"><p>Wrap it in a labelled DataFrame so you can look up any user's neighbours by name.</p></div>
+      <div class="step"><p>Print a target user's nearest neighbours, most similar first.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - user-user cosine similarity</span>import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Kirana users x items matrix (implicit, 1 = bought) - as built in b1
+tx = pd.DataFrame({
+    "user": ["u1","u1","u1","u2","u2","u2","u3","u3","u4","u4","u4"],
+    "item": ["Mat","Strap","Bottle","Mat","Strap","Cookbook",
+             "Blender","Cookbook","Mat","Strap","Bottle"],
+})
+mat = pd.crosstab(tx["user"], tx["item"])
+mat = (mat &gt; 0).astype(int)
+
+# user-user cosine similarity, kept as a labelled DataFrame
+sim = pd.DataFrame(cosine_similarity(mat), index=mat.index, columns=mat.index)
+
+def neighbours(user, sim, k=3):
+    s = sim[user].drop(user)              # drop self-similarity (=1.0)
+    return s.sort_values(ascending=False).head(k)
+
+print("Nearest neighbours of u1:")
+print(neighbours("u1", sim).round(2))</div>
+
+    <div class="callout tip">
+      <strong>Drop the diagonal</strong>
+      Every user is perfectly similar to themselves (cosine 1.0), so always remove self-similarity before ranking neighbours. Notice u4 comes back as u1's closest neighbour - identical baskets (Mat, Strap, Bottle) give cosine 1.0.
+    </div>
+  </section>
+
+  <!-- ============ DEMO 2 ============ -->
+  <section class="section" id="demo-2">
+    <div class="section-kicker">
+      <span class="klabel">Demo 2 of 2</span>
+      <h2>recommend_useruser: top-N unseen items <span class="tag demo">★ 11 min · build your own</span></h2>
+    </div>
+    <p class="lede">Now the payoff. Score every candidate item by summing the similarities of the k neighbours who bought it, drop what the target already has, and return the top-N. This is exactly the math behind the b3 live recommender's "User-user CF" button.</p>
+
+    <div class="steps">
+      <div class="step"><p>Take the target's k nearest neighbours (from Demo 1).</p></div>
+      <div class="step"><p>For each item, sum the similarities of those neighbours who bought it - the weighted vote.</p></div>
+      <div class="step"><p>Remove items the target already owns.</p></div>
+      <div class="step"><p>Sort by score and return the top-N.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - weighted-vote recommender</span>import numpy as np
+
+def recommend_useruser(user, mat, sim, k=3, n=3):
+    # k nearest neighbours (exclude self)
+    nbrs = sim[user].drop(user).sort_values(ascending=False).head(k)
+
+    # weighted vote: sum neighbour similarity per item they bought
+    scores = pd.Series(0.0, index=mat.columns)
+    for other, s in nbrs.items():
+        scores += s * mat.loc[other]      # closer neighbours count more
+
+    # never recommend what the user already has
+    owned = mat.columns[mat.loc[user] &gt; 0]
+    scores = scores.drop(owned)
+
+    return scores.sort_values(ascending=False).head(n)
+
+print("Recommendations for u1 (user-user CF):")
+print(recommend_useruser("u1", mat, sim).round(2))
+# Cookbook rises - u2, a close neighbour, bought it and u1 has not</div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Go see it move.</strong> Open the b3 live recommender and press the "User-user CF" button - it runs this exact weighted vote over a slightly larger Kirana catalog, so you can flip between item-item and user-user and watch the recommendations and the similarity source change in real time. Then remember the trade-off from Part 1: this same computation, at Amazon's scale, is why they transposed the problem to item-item in 2003. In production, reach for <code>surprise</code> (KNN CF) or <code>implicit</code> rather than this hand-rolled loop - but the logic underneath is identical to what you just wrote.</p>
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 30-45 min total</span></h2>
+    </div>
+    <ul>
+      <li>Build the user-user cosine similarity matrix on a real (non-confidential) interactions matrix and print your own nearest-neighbour list.</li>
+      <li>Implement <code>recommend_useruser</code> and compare its top-N for one user against the item-item recommender from b3 - where do they agree, where do they diverge?</li>
+      <li>Vary k (try 2, 5, 20). Note how a small k is noisy and a large k drifts toward popularity.</li>
+      <li>Add a brand-new user with a single purchase. Watch the recommendations get weak - that is cold-start, felt directly.</li>
+      <li>Optional: skim Linden, Smith &amp; York (2003) and note the scalability argument for moving user-user to item-item.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">Taught from the recommender-systems canon, with the Amazon paper cited for the item-item contrast. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Recsys textbook - neighbourhood collaborative filtering (Aggarwal 2016; Ricci et al. handbook)</span><span class="note">Parts 1-2 + demos · user neighbourhoods, cosine/Pearson, kNN prediction</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Amazon item-to-item CF - Linden, Smith &amp; York (2003), IEEE Internet Computing</span><span class="note">Part 1 self-study · why user-user gives way to item-item at scale</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Production libraries - surprise (KNN CF), implicit</span><span class="note">Part 2 · the tested implementations of this same math</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · In user-user CF, what becomes a recommendation for the target?</p>
+      <button class="qopt" type="button">A · The items the target already bought most often</button>
+      <button class="qopt" type="button">B · Items that similar users bought and the target has not, ranked by summed neighbour similarity</button>
+      <button class="qopt" type="button">C · The globally most popular items, ignoring similarity</button>
+      <p class="qwhy">Find the target's nearest neighbours, take the items they have that the target lacks, and rank them by a weighted vote where closer neighbours count for more.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · Why did Amazon (Linden, Smith &amp; York, 2003) move from user-user to item-item CF?</p>
+      <button class="qopt" type="button">A · Item-item is less accurate but easier to explain</button>
+      <button class="qopt" type="button">B · User-user cannot handle purchase data at all</button>
+      <button class="qopt" type="button">C · User-user scales worse and is more cold-start-fragile; item-item similarities are stable and precomputable</button>
+      <p class="qwhy">Users are numerous and change constantly, so their similarities go stale fast; item-item relationships are stable, so Amazon could precompute them and serve fresh recs to hundreds of millions of users.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · Why is cosine (not Pearson) the natural similarity for Kirana's data?</p>
+      <button class="qopt" type="button">A · The data is implicit binary purchases, where cosine on the pattern fits; Pearson suits explicit ratings</button>
+      <button class="qopt" type="button">B · Pearson cannot be computed in Python</button>
+      <button class="qopt" type="button">C · Cosine always gives higher accuracy on every dataset</button>
+      <p class="qwhy">Pearson subtracts each user's mean to cancel generous vs harsh raters - useful for explicit stars. For binary purchase vectors, cosine on the pattern is the standard choice.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Builder session 4 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>User-user CF</b><span>find shoppers similar to the target, recommend the items they have that the target lacks.</span></div>
+      <div class="cheat-item"><b>Cosine similarity</b><span>angle between two users' item vectors; 1 = same taste, 0 = no overlap. Default for implicit data.</span></div>
+      <div class="cheat-item"><b>Pearson</b><span>cosine after mean-centering; best for explicit ratings where users differ in generosity.</span></div>
+      <div class="cheat-item"><b>kNN prediction</b><span>score each unseen item by summing the similarities of the k nearest neighbours who bought it.</span></div>
+      <div class="cheat-item"><b>Scales worse</b><span>users are many and shift constantly, so the similarity matrix goes stale and is costly to recompute.</span></div>
+      <div class="cheat-item"><b>Cold-start-fragile</b><span>a new user with one purchase has no reliable neighbours - weak recs until history builds.</span></div>
+      <div class="cheat-item"><b>Why Amazon flipped</b><span>item-item (2003) transposes the problem: stable, precomputable similarities that stay fresh at scale.</span></div>
+      <div class="cheat-item"><b>Next session</b><span>b5 - content-based filtering: item profiles, TF-IDF, and beating cold-start.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Builder session 4 of 10 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="b5-content-based.html">Next: Content-based filtering →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

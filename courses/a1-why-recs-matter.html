@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leader session 1 · Why recommendations matter - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Leader session 1 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Leader track · Session 1 of 6</div>
+    <h1>Why recommendations matter: <span class="accent">the guide to an infinite shelf</span></h1>
+    <p class="sub">A physical shop can only hold so much. An app can hold everything - and that is the problem. When the catalog is effectively infinite, nobody can browse it all, so the recommender becomes the shop: the guide that decides what each person even sees. This session is about the business case - where recommendations pay off, the flywheel that compounds their value, and the honest cases where you should not over-invest yet.</p>
+    <div class="chip-row">
+      <span class="chip level">🟢 Leader track</span>
+      <span class="chip audience">Leaders: PM · biz · product</span>
+      <span class="chip audience">No code · concepts + decisions</span>
+      <span class="chip time">Start here</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · The infinite shelf + where recs pay off</span>
+      <span class="a3" style="flex:5">18-40 · The value flywheel + when NOT to</span>
+      <span class="a4" style="flex:1">40-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>How this track works</h2>
+    </div>
+    <p class="lede">Six sessions, no code, built for leaders who decide <em>whether</em> and <em>where</em> to invest in recommendations - not the ones writing the models. We start with the business case (today), then plain-English types, then how the logic changes between e-commerce and fintech, the team and pipeline behind a live recommender, how you measure whether it works, and finally strategy, ethics, and roadmap. A running note: the names you will hear - Netflix, Amazon, Alibaba's Lazada - run production stacks far larger than anything a short course reproduces. We teach their published, famous ideas and cite them honestly.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A clear answer to "why does this earn a team's time?" - the infinite-shelf framing, the five places recommendations create measurable value, the flywheel that makes them compound, and the honest test for when a simple popularity list is enough and you should not over-invest.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: THE INFINITE SHELF ============ -->
+  <section class="section" id="shelf">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · the core idea</span>
+      <h2>The catalog got infinite - so the shelf needs a guide <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">A corner shop stocks a few hundred things you can scan by eye. Netflix, Amazon, and Lazada carry more titles and SKUs than any person could ever browse. The store did not just get bigger; it got un-browsable. The recommender is the answer: a personal guide that walks each shopper to the few things worth their attention.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A physical shop with a few shelves a shopper can scan, versus an app with an effectively infinite catalog that needs a personal guide to steer each shopper">
+        <style>
+          .a1sT { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+          .a1sTi { font: 700 14px Inter, sans-serif; fill: #111634; }
+          .a1sX { font: 400 12px Inter, sans-serif; fill: #DCE6FB; }
+          .a1sXi { font: 400 12px Inter, sans-serif; fill: #5B6480; }
+          .a1sN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+          .a1sG { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+        </style>
+        <text class="a1sTi" x="30" y="30">A few shelves you can browse - vs a catalog no one can</text>
+
+        <!-- LEFT: physical shop -->
+        <rect x="24" y="48" width="360" height="210" rx="14" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="a1sTi" x="46" y="78">Physical shop</text>
+        <text class="a1sXi" x="46" y="98">a few hundred items - scan by eye</text>
+        <rect x="46" y="116" width="316" height="26" rx="5" fill="#60A5FA"/><text class="a1sG" x="60" y="134">Shelf 1</text>
+        <rect x="46" y="150" width="316" height="26" rx="5" fill="#60A5FA"/><text class="a1sG" x="60" y="168">Shelf 2</text>
+        <rect x="46" y="184" width="316" height="26" rx="5" fill="#60A5FA"/><text class="a1sG" x="60" y="202">Shelf 3</text>
+        <text class="a1sXi" x="46" y="240">The shelf itself is the guide.</text>
+
+        <!-- RIGHT: app -->
+        <rect x="496" y="48" width="360" height="210" rx="14" fill="#1E3A8A"/>
+        <text class="a1sT" x="518" y="78">App - infinite shelf</text>
+        <text class="a1sX" x="518" y="98">millions of items - no one browses it all</text>
+        <g fill="#2563EB">
+          <rect x="518" y="116" width="40" height="28" rx="4"/><rect x="566" y="116" width="40" height="28" rx="4"/>
+          <rect x="614" y="116" width="40" height="28" rx="4"/><rect x="662" y="116" width="40" height="28" rx="4"/>
+          <rect x="710" y="116" width="40" height="28" rx="4"/><rect x="758" y="116" width="40" height="28" rx="4"/>
+          <rect x="518" y="152" width="40" height="28" rx="4"/><rect x="566" y="152" width="40" height="28" rx="4"/>
+          <rect x="614" y="152" width="40" height="28" rx="4"/><rect x="662" y="152" width="40" height="28" rx="4"/>
+          <rect x="710" y="152" width="40" height="28" rx="4"/><rect x="758" y="152" width="40" height="28" rx="4"/>
+        </g>
+        <rect x="518" y="196" width="316" height="40" rx="8" fill="#FCE7F3" stroke="#DB2777"/>
+        <text class="a1sN" x="536" y="221">Personal guide picks the few that fit you</text>
+
+        <!-- arrow between -->
+        <path d="M392 153 L488 153" stroke="#C7D2E4" stroke-width="3" marker-end="url(#a1sArr)"/>
+        <defs><marker id="a1sArr" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#C7D2E4"/></marker></defs>
+
+        <rect x="24" y="288" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="a1sN" x="48" y="300">When the shelf is infinite, the recommender is not a feature - it is the storefront.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - a browsable shop vs an infinite catalog that needs a guide</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Netflix and Lazada, in one sentence each<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Two anchors you already use, so the idea sticks:</p>
+        <ul>
+          <li><strong>Netflix</strong> - the homepage you see is almost entirely assembled for you. In its own engineering write-up, Netflix frames recommendations as the thing that drives the large majority of what members actually watch: the rows, the order, the artwork are chosen per member, not fixed for everyone.</li>
+          <li><strong>Lazada</strong> - the "For You" discovery feed on Southeast Asia's marketplace is the same idea at retail scale: an endless catalog surfaced as a personal stream, so shoppers keep discovering instead of hitting the end of a shelf.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>The homepage is the product.</strong> Netflix has publicly stated that its recommendations drive the large majority of viewing and that the homepage is almost entirely personalized. We quote that framing from Netflix's own engineering blog rather than a hard percentage - the exact number shifts and the old "75%" figure is dated. The durable point stands: for a catalog this large, the recommender is not decoration on the storefront, it <em>is</em> the storefront.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: WHERE RECS PAY OFF ============ -->
+  <section class="section" id="payoff">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · the business case</span>
+      <h2>Five places recommendations pay off <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">"Recommendations" is not one benefit - it is five distinct business goals, and a good recommender is pointed at a specific one. Naming the goal is how you know whether it worked.</p>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The five goals, and what each looks like<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <table class="clean">
+          <thead><tr><th>Goal</th><th>What it does</th><th>You see it as</th></tr></thead>
+          <tbody>
+            <tr><td>Discovery</td><td>Surfaces the long tail no one would search for</td><td>"For You" feed, new-title rows</td></tr>
+            <tr><td>Engagement</td><td>Keeps the session going with a next thing worth it</td><td>Autoplay next, "because you watched"</td></tr>
+            <tr><td>Retention</td><td>Makes the app worth coming back to next week</td><td>Fewer churned users, more repeat visits</td></tr>
+            <tr><td>Cross-sell / upsell</td><td>Adds a complementary or better item to the basket</td><td>"Customers also bought", bundles</td></tr>
+            <tr><td>Revenue per session</td><td>Lifts the value of each visit that already happened</td><td>Higher basket size, more watch time</td></tr>
+          </tbody>
+        </table>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>Amazon's "customers who bought this also bought" is the canonical cross-sell.</strong> It is not a banner someone merchandised by hand - it is computed from purchase patterns across millions of shoppers, and it is the classic e-commerce recommendation. You will meet the actual algorithm behind it (item-to-item, published by Amazon in 2003) in session 2. For now the leader takeaway is the goal it serves: a bigger, more relevant basket on a visit that was already happening.</p>
+        </div>
+      </div>
+    </details>
+
+    <div class="callout tip">
+      <strong>Name the goal before the model</strong>
+      A recommender tuned for discovery (show me something new) behaves differently from one tuned for revenue per session (add to this basket). If a team cannot tell you which goal a recommender serves, they cannot tell you whether it is working - and neither can you.
+    </div>
+  </section>
+
+  <!-- ============ PART 3: THE VALUE FLYWHEEL ============ -->
+  <section class="section" id="flywheel">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · why it compounds</span>
+      <h2>The value flywheel <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">Recommendations are worth investing in because they compound. Every session a shopper spends produces behavioural data; that data makes the next set of recommendations better; better recommendations pull more usage. Round and round, the moat widens - which is exactly why the incumbents are hard to catch.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The value flywheel: more usage produces more behavioural data, which makes recommendations better, which drives more usage - a compounding loop">
+        <style>
+          .a1wT { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+          .a1wTi { font: 700 14px Inter, sans-serif; fill: #111634; }
+          .a1wX { font: 400 12px Inter, sans-serif; fill: #DCE6FB; }
+          .a1wXi { font: 400 12px Inter, sans-serif; fill: #5B6480; }
+          .a1wN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text class="a1wTi" x="30" y="30">More usage - more data - better recs - more usage</text>
+
+        <!-- four nodes -->
+        <rect x="330" y="52" width="220" height="66" rx="14" fill="#1E3A8A"/>
+        <text class="a1wT" x="352" y="82">More usage</text>
+        <text class="a1wX" x="352" y="102">visits, watches, purchases</text>
+
+        <rect x="616" y="140" width="220" height="66" rx="14" fill="#2563EB"/>
+        <text class="a1wT" x="638" y="170">More behavioural data</text>
+        <text class="a1wX" x="638" y="190">what each person did</text>
+
+        <rect x="330" y="228" width="220" height="66" rx="14" fill="#60A5FA"/>
+        <text class="a1wTi" x="352" y="258">Better recommendations</text>
+        <text class="a1wXi" x="352" y="278">smarter, more personal</text>
+
+        <rect x="44" y="140" width="220" height="66" rx="14" fill="#BFDBFE"/>
+        <text class="a1wTi" x="66" y="170">Happier shoppers</text>
+        <text class="a1wXi" x="66" y="190">find more, faster</text>
+
+        <!-- clockwise arrows -->
+        <path d="M556 92 C 640 100, 700 118, 720 134" stroke="#C7D2E4" stroke-width="3" fill="none" marker-end="url(#a1wArr)"/>
+        <path d="M720 210 C 700 232, 640 252, 556 262" stroke="#C7D2E4" stroke-width="3" fill="none" marker-end="url(#a1wArr)"/>
+        <path d="M324 262 C 240 252, 180 232, 160 210" stroke="#C7D2E4" stroke-width="3" fill="none" marker-end="url(#a1wArr)"/>
+        <path d="M160 134 C 180 118, 240 100, 324 92" stroke="#C7D2E4" stroke-width="3" fill="none" marker-end="url(#a1wArr)"/>
+        <defs><marker id="a1wArr" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#C7D2E4"/></marker></defs>
+
+        <rect x="30" y="314" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="a1wN" x="54" y="326">The loop needs a first push - a new app has no data yet, so it starts on the popularity baseline.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the value flywheel: usage feeds data feeds better recs feeds usage</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Why the flywheel is a moat<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The compounding is the strategic point. A competitor can copy your UI in a weekend. They cannot copy years of your shoppers' behaviour - and that data is what makes the recommendations good. The longer the flywheel turns, the further ahead the leader gets, which is why Netflix, Amazon, and the Alibaba marketplaces are so hard to displace on personalization.</p>
+        <div class="callout tip">
+          <strong>The catch: the loop can turn the wrong way</strong>
+          The same feedback loop that compounds value can compound bias - if the recommender only ever shows popular items, only popular items get the clicks that keep them popular. That is the filter-bubble and popularity-bias problem. We flag it here and treat guardrails properly in session 6; for now, know that "it drives more clicks" is not automatically "it serves the customer well".
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 4: WHEN NOT TO ============ -->
+  <section class="section" id="when-not">
+    <div class="section-kicker">
+      <span class="klabel">Part 4 · the honest test</span>
+      <h2>When NOT to over-invest <span class="tag concept">4 min live</span></h2>
+    </div>
+    <p class="lede">The mature-leader move is knowing when a fancy recommender is not the right spend yet. Two cases where the popularity baseline - just "here is what is trending" - is genuinely the right answer.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>Tiny catalog.</strong> If a shopper can see everything you sell in one screen, there is nothing to guide them <em>to</em>. Curation and good search beat a personalization model.</p></div>
+      <div class="step"><p><strong>No data yet.</strong> A brand-new app has an empty flywheel - no behaviour to learn from. Personalization has nothing to personalize on, so it cannot beat "show the bestsellers" (the cold-start problem).</p></div>
+      <div class="step"><p><strong>The rule of thumb.</strong> Ship the popularity baseline first, cheaply. Only invest in personalization once you have a catalog big enough to get lost in and enough behaviour to learn from - and once you can measure that it beats the baseline.</p></div>
+    </div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Popularity is not a placeholder to be ashamed of.</strong> Every large recommender still falls back to trending items for brand-new visitors it knows nothing about - and it is surprisingly hard to beat. If a team proposes a heavy personalization build for a small catalog or a product with no usage yet, the flywheel picture tells you why to wait: there is no data to turn it. Invest when the shelf is genuinely infinite and the flywheel has something to spin.</p>
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 20-30 min total</span></h2>
+    </div>
+    <ul>
+      <li>Audit three apps you use daily. Find every place a recommendation appears - the homepage, "for you", "also bought", "up next", search re-ranking. Screenshot two.</li>
+      <li>For each one, name the business goal it serves from Part 2: discovery, engagement, retention, cross-sell/upsell, or revenue per session. Some serve two.</li>
+      <li>Pick one app and describe its value flywheel in a sentence: what usage feeds what data feeds what better recommendation.</li>
+      <li>Find one product or feature where you think a recommender would <em>not</em> be worth it yet, and say which reason applies - tiny catalog or no data.</li>
+      <li>Optional: open Netflix or Lazada and count how much of the first screen is personalized versus fixed for everyone.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">Framed from the companies' own published material and the canonical e-commerce example. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Netflix TechBlog - "Netflix Recommendations: Beyond the 5 Stars"</span><span class="note">Parts 1, 3 · the personalized homepage; recs drive most viewing (their framing)</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Amazon - "customers who bought this also bought" (Linden, Smith &amp; York 2003, previewed)</span><span class="note">Part 2 · the canonical cross-sell example; the algorithm comes in session 2</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Lazada / Alibaba discovery feed</span><span class="note">Part 1 · the Southeast-Asia "For You" anchor at marketplace scale</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · Why does an "infinite shelf" need a recommender at all?</p>
+      <button class="qopt" type="button">A · Because personalization is cheaper than stocking shelves</button>
+      <button class="qopt" type="button">B · Because no one can browse a catalog that large, so a guide has to decide what each person even sees</button>
+      <button class="qopt" type="button">C · Because search does not work on the web</button>
+      <p class="qwhy">A corner shop is browsable by eye; a catalog of millions is not. When the shelf is un-browsable, the recommender becomes the storefront.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · What makes the value flywheel compound?</p>
+      <button class="qopt" type="button">A · Bigger servers make recommendations faster</button>
+      <button class="qopt" type="button">B · Marketing spend brings more users</button>
+      <button class="qopt" type="button">C · More usage creates more behavioural data, which makes recs better, which drives more usage</button>
+      <p class="qwhy">The loop is usage → data → better recs → usage. A rival can copy the UI but not years of your shoppers' behaviour - that is the moat.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · When should you NOT over-invest in a personalization model yet?</p>
+      <button class="qopt" type="button">A · When the catalog is tiny or you have no usage data yet - ship the popularity baseline instead</button>
+      <button class="qopt" type="button">B · Whenever a competitor already has one</button>
+      <button class="qopt" type="button">C · Only when the legal team says no</button>
+      <p class="qwhy">A small catalog has nothing to guide toward, and a new app has an empty flywheel. Popularity is the right, honest answer until there is a shelf to get lost in and behaviour to learn from.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Leader session 1 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>The infinite shelf</b><span>a catalog too big to browse. The recommender is the guide - and effectively the storefront.</span></div>
+      <div class="cheat-item"><b>Netflix framing</b><span>recs drive the large majority of viewing; the homepage is almost entirely personalized (their words, not a hard %).</span></div>
+      <div class="cheat-item"><b>Amazon cross-sell</b><span>"customers also bought" is the canonical e-commerce recommendation - a bigger, relevant basket.</span></div>
+      <div class="cheat-item"><b>Five payoffs</b><span>discovery, engagement, retention, cross-sell/upsell, revenue per session. Name the goal.</span></div>
+      <div class="cheat-item"><b>The value flywheel</b><span>usage → behavioural data → better recs → more usage. It compounds into a moat.</span></div>
+      <div class="cheat-item"><b>The loop cuts both ways</b><span>the same feedback loop can compound popularity bias and filter bubbles - guardrails matter (session 6).</span></div>
+      <div class="cheat-item"><b>When NOT to</b><span>tiny catalog or no data yet → the popularity baseline is the right answer. Wait for the flywheel to have something to spin.</span></div>
+      <div class="cheat-item"><b>Next session</b><span>a2 - the types of recommender in plain English, zero math.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Leader session 1 of 6 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="a2-types-plain-english.html">Next: The types, in plain English →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

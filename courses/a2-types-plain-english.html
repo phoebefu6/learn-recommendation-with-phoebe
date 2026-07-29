@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leader session 2 · The types, in plain English - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Leader session 2 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Leader track · Session 2 of 6</div>
+    <h1>The types, in plain English: <span class="accent">four ways to guess what you want</span></h1>
+    <p class="sub">There are only a handful of core ideas behind every "recommended for you" you have ever seen, and you can understand all of them with zero math. This session walks through the four families - people like you, items bought together, more like what you already like, and simply what is trending - each with an everyday analogy, and pins down the one distinction that trips everyone up: the difference between "people like you" and "items like this".</p>
+    <div class="chip-row">
+      <span class="chip level">🟢 Leader track</span>
+      <span class="chip audience">Leaders: PM · biz · product</span>
+      <span class="chip audience">No code · concepts + decisions</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Recap</span>
+      <span class="a2" style="flex:5">3-24 · The four families + the key distinction</span>
+      <span class="a3" style="flex:4">24-42 · Which family when + hybrid</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Where we are</h2>
+    </div>
+    <p class="lede">Last session: why recommendations matter - the infinite shelf, the five payoffs, the value flywheel, and when the popularity baseline is enough. Today we open the box. What is actually inside a recommender? It turns out to be four simple ideas, and every product you use is a blend of them. No equations - just analogies you already understand, so that when a team says "we should use collaborative filtering here", you know exactly what they are proposing and can ask the right question back.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A plain-English grip on the four families - user-user, item-to-item, content-based, and the popularity baseline - one everyday analogy for each, the crisp difference between the two "collaborative" lenses, and a simple sense of which family fits which situation.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: THE TWO COLLABORATIVE LENSES ============ -->
+  <section class="section" id="collab">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · the two lenses on the same data</span>
+      <h2>"People like you" vs "items like this" <span class="tag concept">7 min live</span></h2>
+    </div>
+    <p class="lede">The first two families are both called <em>collaborative filtering</em> because they both learn purely from behaviour - who bought or watched what - with no idea what the items actually are. They are two lenses on the exact same data, and the difference is simply what you compare.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="User-user filtering finds shoppers similar to you and recommends what they liked; item-item filtering finds items bought alongside the one in hand - the same shoppers, two different similarity arrows">
+        <style>
+          .a2uT { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+          .a2uTi { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .a2uX { font: 400 12px Inter, sans-serif; fill: #DCE6FB; }
+          .a2uXi { font: 400 12px Inter, sans-serif; fill: #5B6480; }
+          .a2uN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <!-- LEFT: user-user -->
+        <rect x="24" y="40" width="404" height="212" rx="14" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="a2uTi" x="46" y="66">User-user: "people like you also liked"</text>
+        <rect x="46" y="82" width="150" height="30" rx="6" fill="#2563EB"/><text class="a2uT" x="66" y="102">You</text>
+        <rect x="46" y="126" width="150" height="30" rx="6" fill="#60A5FA"/><text class="a2uT" x="66" y="146">Ann (like you)</text>
+        <rect x="46" y="170" width="150" height="30" rx="6" fill="#60A5FA"/><text class="a2uT" x="66" y="190">Ben (like you)</text>
+        <path d="M198 141 L262 141" stroke="#C7D2E4" stroke-width="3" marker-end="url(#a2uArr)"/>
+        <path d="M198 185 L262 185" stroke="#C7D2E4" stroke-width="3" marker-end="url(#a2uArr)"/>
+        <rect x="264" y="112" width="146" height="86" rx="10" fill="#FCE7F3" stroke="#DB2777"/>
+        <text class="a2uN" x="282" y="140">They loved</text>
+        <text class="a2uN" x="282" y="162">a yoga mat.</text>
+        <text class="a2uXi" x="282" y="186">So we show you one.</text>
+        <text class="a2uXi" x="46" y="228">Compare shoppers - find people, borrow their taste.</text>
+
+        <!-- RIGHT: item-item -->
+        <rect x="452" y="40" width="404" height="212" rx="14" fill="#1E3A8A"/>
+        <text class="a2uT" x="474" y="66">Item-item: "bought / watched together"</text>
+        <rect x="474" y="82" width="150" height="30" rx="6" fill="#60A5FA"/><text class="a2uT" x="494" y="102">Yoga mat (in cart)</text>
+        <path d="M626 97 L690 97" stroke="#C7D2E4" stroke-width="3" marker-end="url(#a2uArr)"/>
+        <rect x="692" y="82" width="150" height="30" rx="6" fill="#BFDBFE"/><text class="a2uTi" x="712" y="102">Yoga blocks</text>
+        <rect x="692" y="122" width="150" height="30" rx="6" fill="#BFDBFE"/><text class="a2uTi" x="712" y="142">Water bottle</text>
+        <rect x="474" y="170" width="368" height="30" rx="8" fill="#FCE7F3" stroke="#DB2777"/>
+        <text class="a2uN" x="494" y="190">Often bought with the mat - so we suggest them</text>
+        <text class="a2uX" x="474" y="228">Compare items - find things that go together.</text>
+
+        <defs><marker id="a2uArr" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#C7D2E4"/></marker></defs>
+        <rect x="24" y="272" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="a2uN" x="48" y="284">Same behaviour data, two questions: "who is like me?" vs "what goes with this?"</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - user-user vs item-item: the same shoppers, two different "similar to" arrows</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Customer-to-customer (user-user), in one analogy<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><strong>"People like you also liked."</strong> The system finds shoppers whose history looks like yours - you and Ann both bought the same five things - then recommends what those look-alikes liked that you have not tried yet. It is a friend with similar taste saying "if you liked those, you'll love this".</p>
+        <ul>
+          <li><strong>The signal it uses:</strong> your behaviour compared to <em>other people's</em> behaviour.</li>
+          <li><strong>Where it shines:</strong> taste discovery - it surfaces things you would never search for.</li>
+          <li><strong>Where it struggles:</strong> brand-new users (no history to match) and huge shopper bases (comparing everyone to everyone is expensive).</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Item-to-item, and why Amazon flipped the lens<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><strong>"Bought / watched together."</strong> Instead of finding people like you, item-item finds <em>items</em> like the one you are looking at - things that keep showing up in the same baskets. You add a yoga mat; it suggests the blocks and bottle that so often ride along.</p>
+        <ul>
+          <li><strong>The signal it uses:</strong> which items co-occur in people's behaviour - again, no idea what the items <em>are</em>.</li>
+          <li><strong>Why the flip matters:</strong> there are usually far fewer items than shoppers, and item relationships are stable, so you can compute them ahead of time. That is what let it scale.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>Amazon's item-to-item is the canonical example.</strong> Linden, Smith &amp; York published it in 2003 (IEEE Internet Computing 7(1):76-80), and it won IEEE's "Test of Time" award in 2017 for how durable the idea proved. It is the engine behind "customers who bought this also bought". The leader insight: Amazon chose item-item precisely because comparing millions of shoppers to each other did not scale, but comparing a smaller, stable set of items did. The choice of lens was an engineering-and-business decision, not just a math one.</p>
+        </div>
+      </div>
+    </details>
+
+    <div class="callout tip">
+      <strong>The one distinction to remember</strong>
+      Both are collaborative filtering; both learn only from behaviour. User-user asks <em>"who is similar to this person?"</em> and borrows their taste. Item-item asks <em>"what is similar to this thing?"</em> and suggests the companions. Same data, opposite anchor.
+    </div>
+  </section>
+
+  <!-- ============ PART 2: CONTENT-BASED ============ -->
+  <section class="section" id="content">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · reading the item itself</span>
+      <h2>Content-based: "more like the things you like" <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">The third family ignores other people entirely. It reads the <em>features</em> of the items you already liked - the tags, the genre, the brand, the description - builds a profile of your taste, and finds other items whose features match.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 270" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Content-based filtering reads the tags of items you liked, builds a taste profile, and matches new items with the same tags">
+        <style>
+          .a2cT { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .a2cTi { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .a2cX { font: 400 12px Inter, sans-serif; fill: #5B6480; }
+          .a2cN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+          .a2cTag { font: 600 11px Inter, sans-serif; fill: #111634; }
+        </style>
+        <text class="a2cTi" x="30" y="30">Item tags → your taste profile → matching new items</text>
+
+        <!-- liked items -->
+        <text class="a2cX" x="30" y="66">You liked</text>
+        <rect x="30" y="78" width="190" height="50" rx="10" fill="#2563EB"/><text class="a2cT" x="46" y="98">Documentary</text><text class="a2cT" x="46" y="116">"nature · calm"</text>
+        <rect x="30" y="140" width="190" height="50" rx="10" fill="#2563EB"/><text class="a2cT" x="46" y="160">Series</text><text class="a2cT" x="46" y="178">"nature · science"</text>
+
+        <!-- profile -->
+        <path d="M228 133 L296 133" stroke="#C7D2E4" stroke-width="3" marker-end="url(#a2cArr)"/>
+        <rect x="300" y="90" width="230" height="86" rx="12" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="a2cTi" x="320" y="116">Your taste profile</text>
+        <rect x="320" y="128" width="70" height="24" rx="12" fill="#BFDBFE"/><text class="a2cTag" x="333" y="144">nature</text>
+        <rect x="398" y="128" width="60" height="24" rx="12" fill="#BFDBFE"/><text class="a2cTag" x="411" y="144">calm</text>
+        <rect x="320" y="156" width="76" height="14" rx="7" fill="none"/>
+
+        <!-- match -->
+        <path d="M534 133 L602 133" stroke="#C7D2E4" stroke-width="3" marker-end="url(#a2cArr)"/>
+        <rect x="606" y="90" width="248" height="86" rx="12" fill="#FCE7F3" stroke="#DB2777"/>
+        <text class="a2cN" x="626" y="118">New film tagged</text>
+        <text class="a2cN" x="626" y="140">"nature · calm"</text>
+        <text class="a2cX" x="626" y="164">Same tags → recommend it</text>
+
+        <defs><marker id="a2cArr" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#C7D2E4"/></marker></defs>
+        <rect x="30" y="238" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="a2cN" x="54" y="250">No other shoppers involved - it matches the item's own features to your history.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - content-based matching: item tags build a taste profile that matches new items</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The analogy, and its blind spot<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><strong>"You loved calm nature documentaries, here is another calm nature documentary."</strong> It is a librarian who knows the tags on every book and keeps handing you the same shelf.</p>
+        <ul>
+          <li><strong>The signal it uses:</strong> the item's own features - no other shoppers needed.</li>
+          <li><strong>Where it shines:</strong> brand-new items (a fresh release already has tags, so it can be recommended on day one - the thing collaborative filtering cannot do), and easy explanations ("because you like nature").</li>
+          <li><strong>Where it struggles:</strong> it can get too narrow - only ever more of the same, a self-made filter bubble. It also depends on having good tags in the first place.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: POPULARITY + HYBRID + WHICH WHEN ============ -->
+  <section class="section" id="popularity">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · the baseline and the blend</span>
+      <h2>Popularity, hybrid, and which family when <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">The fourth "family" is the honest baseline: <strong>popularity</strong> - just show what is trending. It ignores you completely, which is its weakness and, for a stranger with no history, its strength. And in the real world, the best products blend several families into a hybrid.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A simple chooser: no history use popularity; know the items features use content-based; have lots of behaviour use collaborative; want the best blend into a hybrid">
+        <style>
+          .a2wT { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .a2wTi { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .a2wX { font: 400 11.5px Inter, sans-serif; fill: #DCE6FB; }
+          .a2wXi { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .a2wN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text class="a2wTi" x="30" y="30">Which family when</text>
+        <rect x="24" y="46" width="200" height="86" rx="12" fill="#BFDBFE"/>
+        <text class="a2wTi" x="44" y="72">No history yet?</text>
+        <text class="a2wXi" x="44" y="94">→ Popularity</text>
+        <text class="a2wXi" x="44" y="114">show what is trending</text>
+
+        <rect x="238" y="46" width="200" height="86" rx="12" fill="#60A5FA"/>
+        <text class="a2wTi" x="258" y="72">Good item tags?</text>
+        <text class="a2wXi" x="258" y="94">→ Content-based</text>
+        <text class="a2wXi" x="258" y="114">match features to taste</text>
+
+        <rect x="452" y="46" width="200" height="86" rx="12" fill="#2563EB"/>
+        <text class="a2wT" x="472" y="72">Lots of behaviour?</text>
+        <text class="a2wX" x="472" y="94">→ Collaborative</text>
+        <text class="a2wX" x="472" y="114">user-user or item-item</text>
+
+        <rect x="666" y="46" width="190" height="86" rx="12" fill="#1E3A8A"/>
+        <text class="a2wT" x="686" y="72">Want the best?</text>
+        <text class="a2wX" x="686" y="94">→ Hybrid + deep</text>
+        <text class="a2wX" x="686" y="114">blend them all</text>
+
+        <rect x="24" y="152" width="832" height="40" rx="10" fill="#FCE7F3" stroke="#DB2777" stroke-width="1.5"/>
+        <text class="a2wTi" x="44" y="177">Real products blend families - popularity for strangers, collaborative + content once they know you.</text>
+        <rect x="24" y="218" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="a2wN" x="48" y="230">There is no single "best" family - the right choice depends on the data you have.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - a simple chooser: match the family to the data you actually have</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Popularity, and the one-line nod to hybrid &amp; deep<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Popularity ("what's trending"):</strong> everyone sees the same list. It ignores you - which is exactly why it is the safe fallback for a brand-new visitor, and the honest baseline every personalized model has to beat.</li>
+          <li><strong>Hybrid:</strong> the families are not rivals; production systems blend them - popularity for the first visit, item-item on a product page, content-based for fresh items, collaborative once there is history.</li>
+          <li><strong>Deep / modern:</strong> the giants layer neural models (like Alibaba's DIN across the Lazada family) on top to weigh many signals at once. It is more of the same idea with far more horsepower - and far more engineering. We touch it lightly in session 6.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>The leader question to ask</strong>
+          When a team proposes a family, the useful question is not "is it the fanciest?" but "does it fit the data and the goal?" - do we have the behaviour for collaborative, the tags for content-based, or neither yet (so popularity)? That one question is most of the decision.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 20-30 min total</span></h2>
+    </div>
+    <ul>
+      <li>Pick three recommenders you use (a shop, a streaming app, a feed). Classify each into a family: user-user, item-item, content-based, or popularity.</li>
+      <li>For each, name the signal it is clearly using - other people's behaviour, item co-occurrence, item features/tags, or nothing about you at all.</li>
+      <li>Find one example of item-item in the wild ("customers also bought", "frequently bought together") and one of content-based ("because you watched", "more like this").</li>
+      <li>Spot a case where a product is obviously blending families - for example popularity on the first screen but personalized once you have a history.</li>
+      <li>Optional: skim the abstract of the Amazon 2003 item-to-item paper and note the reason they give for choosing items over users.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">Framed from the founding item-to-item paper and the recommender-systems textbook taxonomy. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Amazon - Linden, Smith &amp; York (2003), item-to-item CF, IEEE Internet Computing 7(1):76-80 (IEEE Test-of-Time 2017)</span><span class="note">Part 1 · the item-item exemplar and why the lens was flipped</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Recsys textbook taxonomy (Aggarwal 2016; Ricci et al. handbook)</span><span class="note">Parts 1-3 · the four families, content-based, popularity, hybrid</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · What is the difference between user-user and item-item filtering?</p>
+      <button class="qopt" type="button">A · User-user uses ratings; item-item uses clicks</button>
+      <button class="qopt" type="button">B · One is collaborative and the other is not</button>
+      <button class="qopt" type="button">C · Both learn from behaviour, but user-user compares shoppers ("who is like me?") and item-item compares items ("what goes with this?")</button>
+      <p class="qwhy">Same behaviour data, opposite anchor. User-user borrows the taste of look-alike people; item-item suggests the companions of the item in hand.</p>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">2 · A brand-new film with no viewers yet can still be recommended by which family?</p>
+      <button class="qopt" type="button">A · User-user collaborative filtering</button>
+      <button class="qopt" type="button">B · Content-based - it reads the film's own tags, so it needs no viewing history</button>
+      <button class="qopt" type="button">C · None - it must wait for data</button>
+      <p class="qwhy">Content-based matches item features to your taste, so a fresh item with tags can be surfaced on day one. That is its edge over collaborative filtering on new items.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · Why did Amazon choose item-item over comparing shoppers to each other?</p>
+      <button class="qopt" type="button">A · There are fewer, more stable items than shoppers, so item relationships can be computed ahead of time and scale</button>
+      <button class="qopt" type="button">B · Item-item is always more accurate</button>
+      <button class="qopt" type="button">C · It needed no data at all</button>
+      <p class="qwhy">Comparing millions of shoppers to each other did not scale; comparing a smaller, stable set of items did. The 2003 paper won IEEE's Test-of-Time award for that durable insight.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Leader session 2 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>User-user CF</b><span>"people like you also liked". Compares shoppers, borrows look-alikes' taste. Great discovery; weak on new users.</span></div>
+      <div class="cheat-item"><b>Item-item CF</b><span>"bought / watched together". Compares items, suggests companions. Amazon 2003; scales because items are fewer and stable.</span></div>
+      <div class="cheat-item"><b>The key distinction</b><span>both are collaborative and behaviour-only. User-user = "who is like me?"; item-item = "what goes with this?"</span></div>
+      <div class="cheat-item"><b>Content-based</b><span>"more like what you like". Reads item tags, ignores other people. Handles new items; can get too narrow.</span></div>
+      <div class="cheat-item"><b>Popularity baseline</b><span>"what's trending". Ignores you. Safe fallback for strangers; the line personalization must beat.</span></div>
+      <div class="cheat-item"><b>Hybrid + deep</b><span>real products blend families; giants (Alibaba DIN) add neural models. More horsepower, more engineering.</span></div>
+      <div class="cheat-item"><b>Which family when</b><span>no history → popularity; good tags → content-based; lots of behaviour → collaborative; want the best → hybrid.</span></div>
+      <div class="cheat-item"><b>Next session</b><span>a3 - how the logic changes between e-commerce and fintech.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Leader session 2 of 6 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="a3-ecommerce-vs-fintech.html">Next: E-commerce vs fintech rec logic →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

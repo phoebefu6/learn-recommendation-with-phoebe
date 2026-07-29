@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leader session 6 · Strategy, ethics &amp; roadmap - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Leader session 6 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Leader track · Session 6 of 6</div>
+    <h1>Strategy, ethics, and <span class="accent">a roadmap you can actually run</span></h1>
+    <p class="sub">The capstone. You now know the types, the pipeline, and how recommenders are measured. This final leader session turns that into a plan: how to handle the cold-start problem, where personalization tips into harm, the privacy and suitability duties you carry, the build-versus-buy call, and a crawl-walk-run roadmap that gets you from bestseller lists to a monitored, personalised engine without skipping the steps that keep it safe.</p>
+    <div class="chip-row">
+      <span class="chip level">🟠 Leader track</span>
+      <span class="chip audience">Leaders: PM · biz · product</span>
+      <span class="chip audience">No code · concepts + decisions</span>
+      <span class="chip time">45 min · capstone</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:3">3-15 · Cold-start + guardrails</span>
+      <span class="a3" style="flex:3">15-28 · Ethics, privacy, buy-vs-build</span>
+      <span class="a4" style="flex:4">28-45 · The roadmap + wrap</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>From understanding to a plan</h2>
+    </div>
+    <p class="lede">Everything so far has been about how recommenders work and how to judge them. This session is about what <em>you</em> do on Monday. A good recommendation strategy is not the fanciest model - it is the right sequence of steps for where your data and your organisation actually are, with the ethical guardrails built in from the start rather than bolted on after the first complaint. This is the leader track's send-off.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A cold-start strategy for new users and new items. A clear view of where personalization becomes harm and which guardrails to insist on. The privacy and suitability duties you cannot delegate. A framework for the build-versus-buy call. And a crawl-walk-run roadmap you can present to a board next week.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: COLD START + GUARDRAILS ============ -->
+  <section class="section" id="coldstart">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers cold-start + the personalization guardrails</span>
+      <h2>Cold-start, and where personalization tips into harm <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">Two problems bite every recommender. First, <strong>cold-start</strong>: a brand-new user has no history and a brand-new item has no interactions, so a personalised model has nothing to work with. Second, <strong>over-personalization</strong>: a model that is too good at giving people more of the same slowly narrows their world.</p>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The cold-start strategy: fall back, then earn signals fast<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>You do not solve cold-start with a cleverer model - you solve it with a graceful fallback and a plan to leave it quickly:</p>
+        <ul>
+          <li><strong>New user</strong> - fall back to <strong>popularity</strong> (the bestseller list from a5) and any context you do have (country, device, the item they landed on). Then earn signals fast: a few well-placed choices in the first session tell you more than a sign-up form ever will.</li>
+          <li><strong>New item</strong> - fall back to <strong>content-based</strong> matching (its tags, category, description) so it can be recommended before anyone has interacted with it, then let collaborative signals take over as they arrive.</li>
+          <li><strong>The leader's point</strong> - popularity and content are not the "beginner" models you outgrow. They are your permanent safety net for the cold edges of the catalogue and the audience.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Diversity vs accuracy - the tension you must manage<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Filter bubbles</strong> - relentless personalization keeps showing more of what someone already engaged with, until discovery stops.</li>
+          <li><strong>Popularity bias</strong> - the system over-shows what is already popular because popularity feeds on attention, and the long tail of your catalogue starves.</li>
+          <li><strong>Over-personalization</strong> - accuracy and diversity pull against each other; a model tuned only for accuracy will happily collapse into a narrow, repetitive feed.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>The guardrails, stated plainly</strong>
+          Inject <strong>diversity</strong> on purpose. Keep <strong>business rules</strong> (margin floors, don't-recommend lists, freshness). Reserve some traffic for <strong>exploration</strong> so the system keeps learning about the whole catalogue and the whole customer. These are product requirements, not optional polish.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: ETHICS + PRIVACY + BUY VS BUILD ============ -->
+  <section class="section" id="ethics">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers privacy, suitability, transparency, buy-vs-build</span>
+      <h2>The duties you cannot delegate <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">A recommender runs on behavioural data about real people, and in some domains its suggestions carry legal weight. These are not the data science team's problems to own alone - they are a leader's.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four ethics guardrail tiles: privacy and consent, diversity, suitability, and transparency">
+        <style>
+          .a6eT { font: 700 13.5px Inter, sans-serif; fill: #FFFFFF; }
+          .a6eTi { font: 700 13.5px Inter, sans-serif; fill: #111634; }
+          .a6eX { font: 400 11.5px Inter, sans-serif; fill: #DCE6FB; }
+          .a6eXi { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .a6eN { font: 600 13.5px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text class="a6eTi" x="24" y="28" style="font:700 15px Inter,sans-serif">Four guardrails to build in from day one</text>
+        <rect x="24" y="44" width="200" height="120" rx="12" fill="#1E3A8A"/>
+        <text class="a6eT" x="44" y="76">Privacy &amp; consent</text>
+        <text class="a6eX" x="44" y="102">behavioural data means</text>
+        <text class="a6eX" x="44" y="122">consent + GDPR / PDPA</text>
+        <text class="a6eX" x="44" y="142">respect deletion rights</text>
+        <rect x="238" y="44" width="200" height="120" rx="12" fill="#2563EB"/>
+        <text class="a6eT" x="258" y="76">Diversity</text>
+        <text class="a6eX" x="258" y="102">inject variety on purpose</text>
+        <text class="a6eX" x="258" y="122">fight filter bubbles and</text>
+        <text class="a6eX" x="258" y="142">popularity bias</text>
+        <rect x="452" y="44" width="200" height="120" rx="12" fill="#FCE7F3" stroke="#DB2777" stroke-width="1.5"/>
+        <text class="a6eTi" x="472" y="76">Suitability</text>
+        <text class="a6eXi" x="472" y="102">fintech duty of care;</text>
+        <text class="a6eXi" x="472" y="122">this is NOT financial</text>
+        <text class="a6eXi" x="472" y="142">advice - label it</text>
+        <rect x="666" y="44" width="190" height="120" rx="12" fill="#60A5FA"/>
+        <text class="a6eTi" x="686" y="76">Transparency</text>
+        <text class="a6eXi" x="686" y="102">show why an item</text>
+        <text class="a6eXi" x="686" y="122">was recommended;</text>
+        <text class="a6eXi" x="686" y="142">let people say "not this"</text>
+        <rect x="24" y="212" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="a6eN" x="48" y="224">Guardrails are product requirements set before launch - not a clean-up job after the first complaint.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the four ethics guardrails: privacy, diversity, suitability, transparency</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Privacy, suitability, and the fintech line<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Privacy + consent</strong> - recommendations are built on behavioural data, so GDPR and PDPA apply: lawful basis, clear consent, purpose limits, and the right to be forgotten. If a customer asks to be deleted, their signals leave the model too.</li>
+          <li><strong>Suitability (fintech)</strong> - recommending a product a customer cannot afford or should not hold is not a growth win, it is a duty-of-care failure. Fintech recommendations carry a suitability obligation and must be clearly labelled: this is a suggestion, <strong>not financial advice</strong>.</li>
+          <li><strong>Transparency</strong> - people trust a recommender more when it can say why ("because you watched X") and when they can push back ("show me less of this"). Explainability is a feature, not a compliance chore.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Build vs buy - a leader's decision<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <table class="clean">
+          <thead><tr><th>Option</th><th>Fits when</th><th>The cost</th></tr></thead>
+          <tbody>
+            <tr><td>Buy (managed rec engine)</td><td>You want value fast, recommendations are not your core edge, and your data fits a vendor's shape</td><td>Ongoing fees, less control, your behavioural data leaves your walls</td></tr>
+            <tr><td>Build (in-house)</td><td>Recommendations are strategic, your data or domain is unusual, and you have the team to own it</td><td>Real engineering, hiring, and the long tail of monitoring and retraining</td></tr>
+          </tbody>
+        </table>
+        <p>The honest default for most teams: <strong>buy or use an open baseline to prove value, then build the parts that become a genuine advantage.</strong> Do not build a bespoke engine to earn a lift that a managed service would have handed you in a fortnight.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: THE ROADMAP ============ -->
+  <section class="section" id="roadmap">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · the crawl-walk-run roadmap</span>
+      <h2>A roadmap you can actually run <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">Do not start with deep learning. Start with the bestseller list, prove it, and earn each next step with the data and the loop the previous step created. Every rung is shippable on its own.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A crawl-walk-run recommender roadmap rising in five steps: popularity baseline, collaborative filtering, content-based, hybrid and deep, then a monitored and A/B-tested loop">
+        <style>
+          .a6rT { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .a6rTi { font: 700 12px Inter, sans-serif; fill: #111634; }
+          .a6rX { font: 400 10.5px Inter, sans-serif; fill: #DCE6FB; }
+          .a6rXi { font: 400 10.5px Inter, sans-serif; fill: #5B6480; }
+          .a6rB { font: 700 11px Inter, sans-serif; fill: #FFFFFF; }
+          .a6rP { font: 700 12px Inter, sans-serif; fill: #DB2777; }
+          .a6rN { font: 600 13px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <!-- phase labels -->
+        <text class="a6rP" x="24" y="40">CRAWL</text>
+        <text class="a6rP" x="372" y="40">WALK</text>
+        <text class="a6rP" x="700" y="40">RUN</text>
+        <!-- step 1 -->
+        <rect x="20" y="232" width="150" height="66" rx="11" fill="#1E3A8A"/>
+        <circle cx="38" cy="250" r="10" fill="#DB2777"/><text class="a6rB" x="34" y="254">1</text>
+        <text class="a6rT" x="56" y="254">Popularity</text>
+        <text class="a6rX" x="30" y="278">bestsellers · the</text>
+        <text class="a6rX" x="30" y="292">baseline to beat</text>
+        <!-- step 2 -->
+        <rect x="190" y="194" width="150" height="66" rx="11" fill="#2563EB"/>
+        <circle cx="208" cy="212" r="10" fill="#DB2777"/><text class="a6rB" x="204" y="216">2</text>
+        <text class="a6rT" x="226" y="216">Collaborative</text>
+        <text class="a6rX" x="200" y="240">"also bought /</text>
+        <text class="a6rX" x="200" y="254">also watched"</text>
+        <!-- step 3 -->
+        <rect x="360" y="156" width="150" height="66" rx="11" fill="#3B82F6"/>
+        <circle cx="378" cy="174" r="10" fill="#DB2777"/><text class="a6rB" x="374" y="178">3</text>
+        <text class="a6rT" x="396" y="178">Content-based</text>
+        <text class="a6rX" x="370" y="202">tags + features;</text>
+        <text class="a6rX" x="370" y="216">solves cold-start</text>
+        <!-- step 4 -->
+        <rect x="530" y="118" width="150" height="66" rx="11" fill="#60A5FA"/>
+        <circle cx="548" cy="136" r="10" fill="#DB2777"/><text class="a6rB" x="544" y="140">4</text>
+        <text class="a6rTi" x="566" y="140">Hybrid + deep</text>
+        <text class="a6rXi" x="540" y="164">blend models;</text>
+        <text class="a6rXi" x="540" y="178">most engineering</text>
+        <!-- step 5 -->
+        <rect x="700" y="80" width="160" height="66" rx="11" fill="#BFDBFE"/>
+        <circle cx="718" cy="98" r="10" fill="#DB2777"/><text class="a6rB" x="714" y="102">5</text>
+        <text class="a6rTi" x="736" y="102">Monitor + A/B</text>
+        <text class="a6rXi" x="710" y="126">continuous loop:</text>
+        <text class="a6rXi" x="710" y="140">measure, retrain</text>
+        <!-- risers -->
+        <path d="M170 265 L190 227" stroke="#C7D2E4" stroke-width="2.5" fill="none"/>
+        <path d="M340 227 L360 189" stroke="#C7D2E4" stroke-width="2.5" fill="none"/>
+        <path d="M510 189 L530 151" stroke="#C7D2E4" stroke-width="2.5" fill="none"/>
+        <path d="M680 151 L700 113" stroke="#C7D2E4" stroke-width="2.5" fill="none"/>
+        <!-- bottom note -->
+        <rect x="20" y="318" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="a6rN" x="44" y="330">Earn each rung with the data and the loop the last one built. Do not skip to deep models first.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - crawl, walk, run: five shippable rungs from bestsellers to a monitored, personalised engine</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The five rungs, and why the order is the point<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ol>
+          <li><strong>Popularity baseline (crawl)</strong> - ship the bestseller list. It is your cold-start fallback and the honest line every later model must beat.</li>
+          <li><strong>Collaborative filtering (crawl to walk)</strong> - "customers who bought this also bought," once you have enough interactions. Your first real personalization.</li>
+          <li><strong>Content-based (walk)</strong> - use item tags and features to recommend new and long-tail items, and to cover cold-start on the item side.</li>
+          <li><strong>Hybrid / deep (run)</strong> - blend the above, add modern models only when the data volume and the engineering maturity justify them.</li>
+          <li><strong>Continuous monitoring &amp; A/B (run)</strong> - the loop from a5 made permanent: measure on live traffic, watch guardrails, retrain, repeat. This is not a phase you finish; it is how the system stays alive.</li>
+        </ol>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world · cited honestly</span>
+      <p><strong>Two published anchors, held at arm's length.</strong> <strong>Netflix</strong> describes a heavily personalised homepage and a deliberate move beyond predicting star ratings toward engagement (Netflix TechBlog, "Beyond the 5 Stars"). <strong>Alibaba</strong> published the Deep Interest Network (Zhou et al., 2018, KDD, arXiv:1706.06978), a deployed deep recommender used across its e-commerce platforms including the Lazada / AliExpress family. Honesty rail: these are far larger production stacks than any course teaches. We teach the <em>published cores</em> and cite the papers - we do not claim to reproduce their live systems. Your roadmap earns the right to their techniques one rung at a time.</p>
+    </div>
+  </section>
+
+  <!-- ============ WRAP / WALK-THROUGH ============ -->
+  <section class="section" id="wrap">
+    <div class="section-kicker">
+      <span class="klabel">Wrap · the leader track in one page</span>
+      <h2>Draft your roadmap, right now <span class="tag demo">◆ 8 min · think it through</span></h2>
+    </div>
+    <p class="lede">No code - just the plan. Sketch the four steps you would actually take for your own product, and name the one risk you will watch hardest. This is the send-off exercise for the whole leader track.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>Rung 1 - the baseline.</strong> What is the simplest recommendation you can ship this quarter? Almost always: a popularity or bestseller list, plus whatever context you already have. This is your fallback forever.</p></div>
+      <div class="step"><p><strong>Rung 2 - the first personalization.</strong> Once you have enough interactions, which collaborative signal is easiest to earn trust with - "also bought," "also watched," "frequently together"?</p></div>
+      <div class="step"><p><strong>Rung 3 - cover the cold edges.</strong> Add content-based matching so new items and new users are never shown nothing. Name the tags and features you would use.</p></div>
+      <div class="step"><p><strong>The loop and the risk.</strong> Commit to measuring on live traffic with guardrails from day one. Then name the single biggest ethical risk for <em>your</em> domain - privacy, suitability, or filter bubbles - and the guardrail that answers it.</p></div>
+    </div>
+
+    <div class="callout win">
+      <strong>You have finished the leader track</strong>
+      Six sessions: why recommendations matter, the types in plain English, e-commerce versus fintech, the team and pipeline, how they are measured, and now the strategy, ethics, and roadmap. You can read a recommender's scorecard, brief a data science team, and chair a launch review - without writing a line of code. If you want to see how the models are actually built, the builder track is waiting.
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 25-35 min total</span></h2>
+    </div>
+    <ul>
+      <li>Draft your organisation's <strong>4-step recommender roadmap</strong> using the crawl-walk-run rungs: baseline, collaborative, content-based, then the monitored loop. One line per step.</li>
+      <li>Name the <strong>top ethical risk for your domain</strong> - privacy / consent, suitability (if you touch money), or filter bubbles / over-narrowing - and the specific guardrail you would set for it.</li>
+      <li>Make a first-pass <strong>build-vs-buy</strong> call for rung 1, with one sentence of reasoning.</li>
+      <li>Write your cold-start plan in two sentences: what a brand-new user sees, and what a brand-new item falls back to.</li>
+      <li>Optional: skim the DIN paper abstract (Zhou et al., 2018, arXiv:1706.06978) to see what "modern deep recsys" actually claims - and note it is a production result you would only reach at the top of the roadmap.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">The capstone draws the strategy and ethics together from the industry's published work and the responsible-recsys canon. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Netflix - "Netflix Recommendations: Beyond the 5 Stars," Netflix TechBlog</span><span class="note">Part 3 · personalised homepage; engagement over rating accuracy - case study cited</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Alibaba - Zhou et al. (2018), "Deep Interest Network for CTR Prediction," KDD, arXiv:1706.06978</span><span class="note">Part 3 · a deployed deep recsys (Lazada / AliExpress family) - case study cited</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Responsible-recsys / ethics canon (diversity, popularity bias, GDPR / PDPA, suitability)</span><span class="note">Parts 1-2 · cold-start, filter bubbles, privacy, transparency, buy-vs-build</span></div>
+    </div>
+    <p class="lede" style="margin-top:14px">Honesty rail: Netflix and Alibaba run far larger production stacks than this course teaches. We cite the published cores and cases and do not claim to reproduce their live systems; the roadmap here is a responsible path toward those techniques, not a copy of them.</p>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · A brand-new user with no history arrives. What is the right cold-start move?</p>
+      <button class="qopt" type="button">A · Refuse to recommend anything until they rate items</button>
+      <button class="qopt" type="button">B · Fall back to popularity plus any context you have, and earn personal signals fast from the first session</button>
+      <button class="qopt" type="button">C · Immediately train a deep model on their one visit</button>
+      <p class="qwhy">Cold-start is solved with a graceful fallback, not a cleverer model. Popularity and content-based are your permanent safety net for the cold edges - not beginner models you outgrow.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · Your fintech app recommends products. Which duty applies?</p>
+      <button class="qopt" type="button">A · None - a recommendation is just a suggestion</button>
+      <button class="qopt" type="button">B · Only speed of response matters</button>
+      <button class="qopt" type="button">C · A suitability duty of care, clear "not financial advice" labelling, and GDPR / PDPA consent on the behavioural data</button>
+      <p class="qwhy">Recommending something a customer should not hold is a duty-of-care failure, not a growth win. Fintech recs carry suitability obligations, must be labelled as not financial advice, and run on data that needs consent.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · What is the right way to sequence a recommender roadmap?</p>
+      <button class="qopt" type="button">A · Crawl-walk-run: popularity baseline, then collaborative filtering, then content-based, then hybrid / deep, all under continuous monitoring and A/B</button>
+      <button class="qopt" type="button">B · Start with a deep model because it is the most accurate</button>
+      <button class="qopt" type="button">C · Ship everything at once so you only launch once</button>
+      <p class="qwhy">Each rung is shippable and earns the next with the data and the loop it creates. Starting with deep learning skips the baseline you must beat and the monitoring that keeps any of it safe.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Leader track wrap · session 6 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Cold-start</b><span>new user -> popularity + context; new item -> content-based on tags. Fall back gracefully, then earn signals fast.</span></div>
+      <div class="cheat-item"><b>Guardrails</b><span>inject diversity, keep business rules, reserve traffic for exploration. Accuracy and diversity pull against each other.</span></div>
+      <div class="cheat-item"><b>Privacy + consent</b><span>behavioural data = GDPR / PDPA: lawful basis, consent, purpose limits, right to be forgotten.</span></div>
+      <div class="cheat-item"><b>Suitability</b><span>fintech recs carry a duty of care and must be labelled "not financial advice." Growth never overrides it.</span></div>
+      <div class="cheat-item"><b>Transparency</b><span>show why an item was recommended and let people say "less of this." Trust is a feature.</span></div>
+      <div class="cheat-item"><b>Build vs buy</b><span>buy or use an open baseline to prove value; build the parts that become a real advantage. Do not over-engineer.</span></div>
+      <div class="cheat-item"><b>The roadmap</b><span>crawl-walk-run: popularity -> collaborative -> content-based -> hybrid / deep -> continuous monitoring &amp; A/B.</span></div>
+      <div class="cheat-item"><b>Honest anchors</b><span>Netflix (beyond-stars, personalised homepage) and Alibaba DIN are cited published cores - far larger than we teach.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Leader session 6 of 6 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="../courses/b1-recsys-foundations.html">Cross to the Builder track: Recsys foundations →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

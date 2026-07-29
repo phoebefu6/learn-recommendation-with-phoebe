@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leader session 3 · E-commerce vs fintech - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Leader session 3 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Leader track · Session 3 of 6</div>
+    <h1>E-commerce vs fintech: <span class="accent">same math, very different rules</span></h1>
+    <p class="sub">A recommender is the same idea whether it sits inside a shopping app or a bank: predict what a customer will want next. But the two worlds could not be more different in what they optimize for, how much signal they have, and what happens when a recommendation is wrong. This session sets the two side by side - Amazon-style discovery and cross-sell against the bank's next-best-product - so you know which playbook you are actually running before you fund it.</p>
+    <div class="chip-row">
+      <span class="chip level">🟡 Leader track</span>
+      <span class="chip audience">Leaders: PM · biz · product</span>
+      <span class="chip audience">No code · concepts + decisions</span>
+      <span class="chip time">Session 3 of 6</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-20 · The two worlds</span>
+      <span class="a3" style="flex:5">20-40 · Cases + the suitability gate</span>
+      <span class="a4" style="flex:1">40-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Why the same engine behaves differently</h2>
+    </div>
+    <p class="lede">The four families from session 2 - collaborative, content-based, matrix factorization, deep - are just math. The math does not care whether it is ranking phone cases or savings accounts. What changes everything is the <strong>business context</strong> around the math: how big the catalog is, how much behaviour you can observe, and above all what it costs when the recommendation is wrong. In e-commerce a bad rec is an ignored suggestion. In fintech a bad rec can be mis-selling, a compliance breach, and a fine. Same engine, opposite guardrails.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A clear side-by-side of the two worlds, the one deployed deep example on the e-commerce side (Alibaba's DIN), the next-best-product / next-best-action framing on the fintech side, and the single most important difference for a leader to internalize: the <strong>suitability gate</strong> that must sit before any regulated financial offer - and why it never existed in the shopping app.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: THE COMPARISON ============ -->
+  <section class="section" id="compare">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · e-commerce vs fintech at a glance</span>
+      <h2>Five dimensions, two very different answers <span class="tag concept">7 min live</span></h2>
+    </div>
+    <p class="lede">Before any tooling decision, put the two worlds on the same table. Every row below flips the design brief - the same recommender team would build two different things.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of e-commerce and fintech recommenders across catalog size, signal volume, cost of error, regulation, and primary goal">
+        <style>
+          .a3cT { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .a3cH { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+          .a3cL { font: 700 12.5px Inter, sans-serif; fill: #FFFFFF; }
+          .a3cE { font: 400 12px Inter, sans-serif; fill: #111634; }
+          .a3cF { font: 400 12px Inter, sans-serif; fill: #6B0F3F; }
+          .a3cN { font: 600 13px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text class="a3cT" x="24" y="26">Same engine, opposite briefs</text>
+        <!-- column headers -->
+        <rect x="214" y="40" width="322" height="34" rx="8" fill="#2563EB"/><text class="a3cH" x="300" y="62">E-commerce</text>
+        <rect x="544" y="40" width="312" height="34" rx="8" fill="#1E3A8A"/><text class="a3cH" x="640" y="62">Fintech</text>
+        <!-- rows -->
+        <rect x="24" y="82" width="182" height="46" rx="8" fill="#60A5FA"/><text class="a3cL" x="40" y="110">Catalog size</text>
+        <rect x="214" y="82" width="322" height="46" rx="8" fill="#EFF6FF" stroke="#BFDBFE"/><text class="a3cE" x="230" y="110">Millions of SKUs</text>
+        <rect x="544" y="82" width="312" height="46" rx="8" fill="#FCE7F3" stroke="#DB2777"/><text class="a3cF" x="560" y="110">A handful of products</text>
+
+        <rect x="24" y="136" width="182" height="46" rx="8" fill="#60A5FA"/><text class="a3cL" x="40" y="164">Signal volume</text>
+        <rect x="214" y="136" width="322" height="46" rx="8" fill="#EFF6FF" stroke="#BFDBFE"/><text class="a3cE" x="230" y="164">Clicks, carts, buys - abundant</text>
+        <rect x="544" y="136" width="312" height="46" rx="8" fill="#FCE7F3" stroke="#DB2777"/><text class="a3cF" x="560" y="164">Sparse, heavy cold-start</text>
+
+        <rect x="24" y="190" width="182" height="46" rx="8" fill="#60A5FA"/><text class="a3cL" x="40" y="218">Cost of error</text>
+        <rect x="214" y="190" width="322" height="46" rx="8" fill="#EFF6FF" stroke="#BFDBFE"/><text class="a3cE" x="230" y="218">Low - an ignored suggestion</text>
+        <rect x="544" y="190" width="312" height="46" rx="8" fill="#FCE7F3" stroke="#DB2777"/><text class="a3cF" x="560" y="218">High - mis-selling, breach</text>
+
+        <rect x="24" y="244" width="182" height="46" rx="8" fill="#60A5FA"/><text class="a3cL" x="40" y="272">Regulation</text>
+        <rect x="214" y="244" width="322" height="46" rx="8" fill="#EFF6FF" stroke="#BFDBFE"/><text class="a3cE" x="230" y="272">Light - consumer + privacy</text>
+        <rect x="544" y="244" width="312" height="46" rx="8" fill="#FCE7F3" stroke="#DB2777"/><text class="a3cF" x="560" y="272">Heavy - suitability + audit</text>
+
+        <rect x="24" y="298" width="182" height="46" rx="8" fill="#60A5FA"/><text class="a3cL" x="40" y="326">Primary goal</text>
+        <rect x="214" y="298" width="322" height="46" rx="8" fill="#EFF6FF" stroke="#BFDBFE"/><text class="a3cE" x="230" y="326">Discovery, cross-sell, upsell</text>
+        <rect x="544" y="298" width="312" height="46" rx="8" fill="#FCE7F3" stroke="#DB2777"/><text class="a3cF" x="560" y="326">Next-best-product / action</text>
+
+        <rect x="24" y="366" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="a3cN" x="48" y="378">The cost-of-error row is the one that reshapes the whole fintech build.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - e-commerce and fintech recommenders, dimension by dimension</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The e-commerce world: discovery at scale<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>In a shop, the recommender's job is to help you find more of what you might want and to grow the basket:</p>
+        <ul>
+          <li><strong>Goal:</strong> discovery, cross-sell ("customers also bought"), and upsell to a better version.</li>
+          <li><strong>Catalog:</strong> enormous - millions of items no human could browse - so the engine is doing real work no shelf layout could.</li>
+          <li><strong>Signal:</strong> abundant and honest - every click, cart, and purchase is a data point, so cold-start is mostly a new-visitor problem, not a whole-business problem.</li>
+          <li><strong>Cost of a wrong rec:</strong> low. You scroll past it. The engine optimizes for click-through rate, conversion, and basket size, and can afford to experiment.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>Alibaba's Deep Interest Network (DIN).</strong> Zhou et al. (2018, KDD) published DIN - a deep click-through-rate model that learns which of your past behaviours matter for the item in front of you right now - and it was deployed across Alibaba's e-commerce platforms (the AliExpress / Lazada family). It is a real, named production algorithm, and it exists precisely because e-commerce has the ocean of behavioural signal and the low cost-of-error that let a team push accuracy hard. We cite the paper honestly; we are not reproducing Alibaba's live stack.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The fintech world: the right product, provably<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>In a bank, wealth app, or insurer, the recommender's job flips from "discover more" to "offer the one right thing you are actually eligible and suited for":</p>
+        <ul>
+          <li><strong>Goal:</strong> next-best-product (a card, a loan, a fund) or next-best-action (a nudge, a review, a top-up) - a very short list of options.</li>
+          <li><strong>Catalog:</strong> tiny - a handful of products - so ranking is easy; being <em>allowed</em> to offer is the hard part.</li>
+          <li><strong>Signal:</strong> sparse. Customers hold few products and buy rarely, so cold-start is the normal state, not the edge case.</li>
+          <li><strong>Cost of a wrong rec:</strong> high. Recommending an unsuitable product is mis-selling - a regulatory breach with real fines and customer harm. Suitability, explainability, and an audit trail are mandatory, and it is <strong>not financial advice</strong>.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>Say the honest line out loud</strong>
+          A fintech recommender surfaces products a customer is eligible and suited for - it does not give personalized investment advice. Behavioural data also implies consent and privacy duties (GDPR / PDPA). Bake that into the brief on day one, not after legal review.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE FUNNELS ============ -->
+  <section class="section" id="funnels">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · the two funnels</span>
+      <h2>Where the offer actually happens <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">Draw the customer journey for each and one extra step appears on the fintech side that has no equivalent in the shop: a <strong>suitability gate</strong> the candidate must pass before it is ever shown.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two funnels: an e-commerce cross-sell funnel that ends in a bigger basket, and a fintech next-best-product funnel with a suitability gate before the offer">
+        <style>
+          .a3fH { font: 700 13.5px Inter, sans-serif; fill: #111634; }
+          .a3fB { font: 700 12.5px Inter, sans-serif; fill: #FFFFFF; }
+          .a3fBi { font: 700 12.5px Inter, sans-serif; fill: #111634; }
+          .a3fN { font: 600 12px Inter, sans-serif; fill: #6B0F3F; }
+          .a3fG { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+        </style>
+        <text class="a3fH" x="70" y="26">E-commerce: cross-sell funnel</text>
+        <text class="a3fH" x="530" y="26">Fintech: next-best-product</text>
+
+        <!-- e-commerce funnel (narrowing) -->
+        <rect x="50" y="46" width="300" height="46" rx="8" fill="#2563EB"/><text class="a3fB" x="70" y="74">Browse a huge catalog</text>
+        <rect x="75" y="112" width="250" height="46" rx="8" fill="#2563EB"/><text class="a3fB" x="95" y="140">Clicks, carts, buys logged</text>
+        <rect x="100" y="178" width="200" height="46" rx="8" fill="#60A5FA"/><text class="a3fB" x="120" y="206">Cross-sell rec shown</text>
+        <rect x="125" y="244" width="150" height="46" rx="8" fill="#BFDBFE"/><text class="a3fBi" x="148" y="272">Bigger basket ✓</text>
+        <line x1="200" y1="92" x2="200" y2="112" stroke="#C7D2E4" stroke-width="2"/>
+        <line x1="200" y1="158" x2="200" y2="178" stroke="#C7D2E4" stroke-width="2"/>
+        <line x1="200" y1="224" x2="200" y2="244" stroke="#C7D2E4" stroke-width="2"/>
+        <text class="a3fG" x="90" y="318">Optimize CTR / conversion / basket size.</text>
+        <text class="a3fG" x="90" y="338">A wrong rec is simply ignored.</text>
+
+        <!-- fintech funnel with suitability gate -->
+        <rect x="520" y="46" width="300" height="42" rx="8" fill="#1E3A8A"/><text class="a3fB" x="540" y="73">Customer profile + few products</text>
+        <rect x="545" y="104" width="250" height="42" rx="8" fill="#1E3A8A"/><text class="a3fB" x="565" y="131">Candidate next-best-product</text>
+        <!-- gate diamond -->
+        <polygon points="670,160 760,200 670,240 580,200" fill="#FCE7F3" stroke="#DB2777" stroke-width="2"/>
+        <text class="a3fN" x="628" y="196">Suitability</text>
+        <text class="a3fN" x="648" y="212">gate?</text>
+        <rect x="545" y="256" width="250" height="42" rx="8" fill="#60A5FA"/><text class="a3fB" x="565" y="283">Eligible offer shown</text>
+        <line x1="670" y1="88" x2="670" y2="104" stroke="#C7D2E4" stroke-width="2"/>
+        <line x1="670" y1="146" x2="670" y2="160" stroke="#C7D2E4" stroke-width="2"/>
+        <line x1="670" y1="240" x2="670" y2="256" stroke="#C7D2E4" stroke-width="2"/>
+        <line x1="760" y1="200" x2="792" y2="200" stroke="#DB2777" stroke-width="2"/><polygon points="792,196 798,200 792,204" fill="#DB2777"/><text class="a3fN" x="802" y="204">no offer</text>
+        <text class="a3fG" x="540" y="326">Not financial advice. Log the</text>
+        <text class="a3fG" x="540" y="346">reason. Keep the audit trail.</text>
+
+        <rect x="50" y="386" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="a3fN" x="74" y="398">The gate is the difference: a fintech rec must be provably suitable before it is ever seen.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the cross-sell funnel vs the next-best-product funnel with its suitability gate</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Why the gate cannot be an afterthought<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>It is tempting to build the ranking model first and "add compliance later". In fintech that ordering fails, because the gate changes what the model is even allowed to rank:</p>
+        <ul>
+          <li><strong>Eligibility and suitability come first.</strong> A high-scoring product that the customer is not suited for must never surface - so the filter runs before ranking, not after.</li>
+          <li><strong>Every offer needs a reason.</strong> Regulators and customers can ask "why was I shown this?" - the system must be able to answer, which pushes you toward explainable models and logged features.</li>
+          <li><strong>The audit trail is a feature, not overhead.</strong> Who was offered what, when, and on what basis - retained and reviewable. In e-commerce nobody audits why you saw a phone case.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>The e-commerce team can A/B its way forward; the fintech team cannot experiment on unsuitable offers.</strong> That single constraint is why fintech recommenders lean on fewer, more explainable models with hard business rules on top - not because the data scientists there are less capable, but because the cost of a wrong recommendation is on a completely different scale.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ WALK-THROUGH 1 ============ -->
+  <section class="section" id="walk-1">
+    <div class="section-kicker">
+      <span class="klabel">Walk-through 1 of 2</span>
+      <h2>Read an e-commerce rec like a leader <span class="tag demo">◐ 7 min · think it through</span></h2>
+    </div>
+    <p class="lede">No code today - a thought exercise. Picture the "customers who bought this also bought" rail on a marketplace and reason about what it is optimizing.</p>
+
+    <div class="steps">
+      <div class="step"><p>Name the goal: is this rail trying to help you find something new (discovery), add a companion item (cross-sell), or trade up (upsell)?</p></div>
+      <div class="step"><p>Name the signal: what behaviour fed it - your clicks, your cart, other shoppers' purchases? Notice how much signal is available.</p></div>
+      <div class="step"><p>Name the metric: the team is almost certainly watching click-through rate, conversion, and basket size - and can safely A/B test variants.</p></div>
+      <div class="step"><p>Name the cost of a miss: essentially zero. That freedom is why deep models like DIN live here.</p></div>
+    </div>
+
+    <div class="callout tip">
+      <strong>Leader takeaway</strong>
+      On the e-commerce side your questions are about lift and guardrails against filter bubbles and popularity bias - not about whether you were <em>allowed</em> to show the item.
+    </div>
+  </section>
+
+  <!-- ============ WALK-THROUGH 2 ============ -->
+  <section class="section" id="walk-2">
+    <div class="section-kicker">
+      <span class="klabel">Walk-through 2 of 2</span>
+      <h2>Pressure-test a fintech next-best-product <span class="tag demo">◐ 8 min · think it through</span></h2>
+    </div>
+    <p class="lede">Now picture a banking app suggesting a credit card or a fund. Same reasoning, but the questions change shape.</p>
+
+    <div class="steps">
+      <div class="step"><p>Name the goal: next-best-product or next-best-action from a short, fixed list - not open-ended discovery.</p></div>
+      <div class="step"><p>Find the gate: what eligibility and suitability checks must pass before this offer is allowed to appear at all?</p></div>
+      <div class="step"><p>Demand the reason: could the team explain, to a regulator or the customer, why this product was surfaced? If not, it should not ship.</p></div>
+      <div class="step"><p>Check the trail: is the offer, its basis, and its outcome logged for audit? Is consent for the behavioural data in place (GDPR / PDPA)?</p></div>
+    </div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Same team, opposite defaults.</strong> A leader who moves from a retail app to a bank keeps the same recommender talent but must re-wire the defaults: suitability before ranking, explainability over raw accuracy, audit over speed, and a standing reminder that this is product surfacing, not financial advice.</p>
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 20-30 min total</span></h2>
+    </div>
+    <ul>
+      <li>Pick <strong>one e-commerce app</strong> you use (Amazon, Lazada, a marketplace). List what its recommendations seem to optimize for and which signals feed them.</li>
+      <li>Pick <strong>one fintech app</strong> you use (a bank, wealth, or insurance app). List what its recommendations optimize for and name <strong>one guardrail it needs that the e-commerce app does not</strong> - suitability, explainability, or an audit trail.</li>
+      <li>For the fintech app, sketch where the suitability gate would sit in its funnel.</li>
+      <li>Write one sentence on the cost of a wrong recommendation in each app - and how different those two sentences are.</li>
+      <li>Optional: skim the abstract of Zhou et al. (2018) DIN (arXiv:1706.06978) to see how much signal a deployed e-commerce model leans on.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">Taught from one published production algorithm and the standard fintech next-best-product framing. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Alibaba DIN - Zhou et al. (2018), "Deep Interest Network for CTR Prediction," KDD 2018 (arXiv:1706.06978)</span><span class="note">Part 1 · the deployed deep e-commerce example (AliExpress / Lazada family)</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Fintech next-best-product / next-best-action canon + regulatory suitability duty</span><span class="note">Parts 1-2 · the suitability gate, explainability, audit; not financial advice</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Consent + privacy (GDPR / PDPA) on behavioural data</span><span class="note">Part 2 · why fintech recs carry duties e-commerce mostly does not</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · What most changes the design brief between e-commerce and fintech recommenders?</p>
+      <button class="qopt" type="button">A · The programming language used</button>
+      <button class="qopt" type="button">B · The colour of the buttons</button>
+      <button class="qopt" type="button">C · The business context - catalog size, signal volume, and above all the cost of a wrong recommendation</button>
+      <p class="qwhy">The math is the same. Catalog, signal, cost of error, and regulation flip the brief - the cost-of-error row reshapes the whole fintech build.</p>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">2 · In fintech, where must the suitability gate sit?</p>
+      <button class="qopt" type="button">A · After ranking, as an optional cleanup step</button>
+      <button class="qopt" type="button">B · Before the offer is ever shown - filter for eligibility and suitability first, then rank</button>
+      <button class="qopt" type="button">C · Only when a customer complains</button>
+      <p class="qwhy">An unsuitable product must never surface, so the gate runs before ranking. It is mandatory, explainable, and audited - and the whole thing is product surfacing, not financial advice.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · Why can e-commerce teams push aggressive deep models like DIN more freely?</p>
+      <button class="qopt" type="button">A · Abundant behavioural signal and a low cost of a wrong recommendation let them experiment</button>
+      <button class="qopt" type="button">B · Because fintech has no data scientists</button>
+      <button class="qopt" type="button">C · Because shopping is harder than banking</button>
+      <p class="qwhy">DIN (Alibaba, 2018) is deployed in e-commerce precisely because there is an ocean of clicks and carts and an ignored rec costs almost nothing - so the team can A/B its way to accuracy.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Leader session 3 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Same math, different rules</b><span>the four families are just math; business context decides what you actually build.</span></div>
+      <div class="cheat-item"><b>E-commerce goal</b><span>discovery, cross-sell, upsell. Optimize CTR, conversion, basket size.</span></div>
+      <div class="cheat-item"><b>Fintech goal</b><span>next-best-product / next-best-action from a short, fixed list.</span></div>
+      <div class="cheat-item"><b>Signal + catalog</b><span>e-comm: huge catalog, abundant signal. Fintech: few products, sparse signal, heavy cold-start.</span></div>
+      <div class="cheat-item"><b>Cost of a wrong rec</b><span>e-comm: low (ignored). Fintech: high (mis-selling, breach). This flips the build.</span></div>
+      <div class="cheat-item"><b>The suitability gate</b><span>fintech filters eligibility + suitability before ranking. Mandatory, explainable, audited.</span></div>
+      <div class="cheat-item"><b>Say the line</b><span>fintech recs surface suitable products - not financial advice. Respect consent + privacy (GDPR / PDPA).</span></div>
+      <div class="cheat-item"><b>Deep example</b><span>Alibaba DIN (2018) - a real deployed e-commerce CTR model. Cited, not reproduced.</span></div>
+      <div class="cheat-item"><b>Next session</b><span>a4 - the team and the pipeline: who does what, and the artifact each role hands off.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Leader session 3 of 6 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="a4-team-pipeline-rr.html">Next: The team + the pipeline (R&amp;R) →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

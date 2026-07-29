@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>learn recommendation systems with phoebe - how "recommended for you" actually works</title>
+<link rel="stylesheet" href="assets/style.css?v=1">
+<style>
+  .stats-row { display: flex; gap: 2.4rem; margin-top: 1.5rem; flex-wrap: wrap; }
+  .stat b { display: block; font-size: 2.1rem; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: .72rem; opacity: .85; text-transform: uppercase; letter-spacing: .09em; font-weight: 600; }
+
+  .course-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+  .course-card {
+    border: 1px solid var(--hairline);
+    border-top: 4px solid var(--diff, var(--indigo));
+    border-radius: var(--radius);
+    padding: 1.2rem 1.3rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    text-decoration: none;
+    color: var(--ink);
+    background: #fff;
+    transition: box-shadow .15s ease, border-color .15s ease, transform .15s ease;
+    position: relative;
+  }
+  .course-card:hover { border-color: var(--indigo-soft); border-top-color: var(--diff, var(--indigo)); box-shadow: 0 8px 28px rgba(37,99,235,.15); transform: translateY(-3px); }
+  .course-card .cicon { font-size: 1.7rem; line-height: 1; }
+  .course-card .cnum { font-size: .72rem; font-weight: 700; color: var(--indigo); text-transform: uppercase; letter-spacing: .1em; }
+  .course-card h3 { font-size: 1.05rem; font-weight: 800; line-height: 1.3; }
+  .course-card p { font-size: .85rem; color: var(--muted); flex: 1; }
+  .course-card .meta { display: flex; gap: .4rem; flex-wrap: wrap; }
+
+  .diff-legend { display: flex; gap: 1rem; margin-top: 1.6rem; font-size: .74rem; color: var(--muted); font-weight: 600; flex-wrap: wrap; }
+  .diff-legend i { display: inline-block; width: .85rem; height: .35rem; border-radius: 999px; margin-right: .35rem; vertical-align: middle; }
+
+  .paths { margin-top: 2.6rem; }
+  .paths h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: .3rem; }
+  .paths .plede { color: var(--muted); font-size: .92rem; margin-bottom: .8rem; }
+  .path { display: flex; gap: .55rem; align-items: center; padding: .75rem 0; border-bottom: .5px solid var(--hairline); flex-wrap: wrap; }
+  .path:last-child { border-bottom: none; }
+  .path b { min-width: 15.5rem; font-size: .9rem; }
+  .path .pstep { background: var(--indigo-50); color: var(--indigo); border-radius: 999px; padding: .16rem .68rem; font-weight: 700; font-size: .8rem; text-decoration: none; transition: all .12s ease; }
+  .path .pstep:hover { background: var(--indigo); color: #fff; }
+  .path .parr { color: var(--faint); font-weight: 700; }
+
+  .mm-section { margin-top: 1.6rem; }
+  .mm-section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: .2rem; }
+  .mm-section .mm-lede { color: var(--muted); font-size: .92rem; margin-bottom: .4rem; }
+  .mm-wrap { border: 1px solid var(--hairline); border-radius: var(--radius); background: linear-gradient(180deg,#fff,#E6EEFC); padding: .6rem; overflow-x: auto; }
+  .mm-svg { width: 100%; height: auto; display: block; max-width: 60rem; margin: 0 auto; min-width: 34rem; }
+  .mm-link { cursor: pointer; text-decoration: none; }
+  .mm-node rect { transition: opacity .15s ease, filter .15s ease; }
+  .mm-node text { pointer-events: none; }
+  .mm-link:hover .mm-node rect { filter: brightness(1.06); }
+  .mm-edge { transition: opacity .15s ease; }
+
+  .rail { margin-top: 1.4rem; border: 1px solid var(--hairline); border-left: 4px solid var(--amber); border-radius: var(--radius); background: var(--amber-50); padding: 1rem 1.2rem; font-size: .9rem; }
+  .rail b { color: var(--amber-ink); }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe</div>
+    <h1>How <span class="accent">"recommended for you"</span> actually works</h1>
+    <p class="sub">The engine behind Netflix's homepage, Amazon's "customers who bought this also bought", and Lazada's feed - explained end to end. A leader track that makes every type click in plain English (with a visual for each), and a builder track that implements them in real Python: basket analysis, customer-to-customer and item-to-item collaborative filtering, matrix factorization, and modern deep models. You even drive a live recommender in the browser. And the whole team pipeline - analyst to data scientist to engineering to monitoring - laid out so you know who does what.</p>
+    <div class="stats-row">
+      <div class="stat"><b data-count="2">2</b><span>tracks</span></div>
+      <div class="stat"><b data-count="16">16</b><span>sessions</span></div>
+      <div class="stat"><b data-count="45">45</b><span>min per session</span></div>
+      <div class="stat"><b data-count="1">1</b><span>live recommender you drive</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="section">
+    <div class="paths" style="margin-top:0">
+      <h2>The leader track 🤝 <span style="font-size:.85rem;font-weight:600;color:var(--muted)">· for PMs, product &amp; business leaders · 6 x 45 min · no code, ever</span></h2>
+      <p class="plede">Thinking mode: what each recommendation type is in plain English, how e-commerce and fintech logic differ, who on the team does what, and how you measure whether it works - each session ends with the questions to ask your team.</p>
+    </div>
+    <div class="course-grid">
+      <a class="course-card" href="courses/a1-why-recs-matter.html" style="--diff:#34D399">
+        <span class="cicon">💡</span>
+        <span class="cnum">Leader 1 · easy</span>
+        <h3>Why recommendations matter</h3>
+        <p>Where recs drive real value - Netflix's personalized homepage, e-commerce cross-sell - and the business case, in plain English.</p>
+        <span class="meta"><span class="pill amber">▶ Leaders start here</span></span>
+      </a>
+      <a class="course-card" href="courses/a2-types-plain-english.html" style="--diff:#34D399">
+        <span class="cicon">🧩</span>
+        <span class="cnum">Leader 2 · easy</span>
+        <h3>The types, in plain English</h3>
+        <p>Customer-to-customer ("people like you"), item-to-item ("goes well with"), content-based ("more like this"), and popularity - with a visual for each.</p>
+        <span class="meta"><span class="pill light">Visual explainers</span></span>
+      </a>
+      <a class="course-card" href="courses/a3-ecommerce-vs-fintech.html" style="--diff:#FBBF24">
+        <span class="cicon">🔀</span>
+        <span class="cnum">Leader 3 · medium</span>
+        <h3>E-commerce vs fintech rec logic</h3>
+        <p>Discovery and cross-sell versus next-best-product - and why fintech adds suitability, regulation, and cold-start constraints.</p>
+        <span class="meta"><span class="pill light">Comparison exercise</span></span>
+      </a>
+      <a class="course-card" href="courses/a4-team-pipeline-rr.html" style="--diff:#FBBF24">
+        <span class="cicon">👥</span>
+        <span class="cnum">Leader 4 · medium</span>
+        <h3>The team + the pipeline (R&amp;R)</h3>
+        <p>Who does what: the analyst's basket analysis, the data scientist's model, devops serving it, engineering surfacing it, and monitoring.</p>
+        <span class="meta"><span class="pill light">RACI exercise</span></span>
+      </a>
+      <a class="course-card" href="courses/a5-measuring-recs.html" style="--diff:#FB923C">
+        <span class="cicon">📊</span>
+        <span class="cnum">Leader 5 · deciding</span>
+        <h3>Measuring recommendations</h3>
+        <p>Click-through and conversion, A/B testing, the feedback loop - and the filter-bubble and over-personalization traps to avoid.</p>
+        <span class="meta"><span class="pill light">Metrics exercise</span></span>
+      </a>
+      <a class="course-card" href="courses/a6-strategy-ethics-roadmap.html" style="--diff:#FB923C">
+        <span class="cicon">🧭</span>
+        <span class="cnum">Leader 6 · deciding</span>
+        <h3>Strategy, ethics &amp; roadmap</h3>
+        <p>Cold-start, diversity, the ethics of nudging, and build vs buy - with Netflix and Lazada/Alibaba case studies, cited.</p>
+        <span class="meta"><span class="pill light">Roadmap exercise</span></span>
+      </a>
+    </div>
+
+    <div class="paths">
+      <h2>The builder track 🛠️ <span style="font-size:.85rem;font-weight:600;color:var(--muted)">· for analysts, data scientists &amp; engineers · 10 x 45 min · Python + a notebook</span></h2>
+      <p class="plede">One running store, Kirana, threaded through the demos: you implement each algorithm in real Python and follow one recommendation feature from the analyst's spreadsheet to a monitored production model.</p>
+    </div>
+    <div class="course-grid">
+      <a class="course-card" href="courses/b1-recsys-foundations.html" style="--diff:#34D399">
+        <span class="cicon">🏗️</span>
+        <span class="cnum">Builder 1 · easy</span>
+        <h3>Recsys foundations</h3>
+        <p>The interactions matrix, the map of the four families, and the Python toolkit - pandas, implicit, surprise.</p>
+        <span class="meta"><span class="pill amber">▶ Builders start here</span></span>
+      </a>
+      <a class="course-card" href="courses/b2-basket-analysis.html" style="--diff:#FBBF24">
+        <span class="cicon">🧺</span>
+        <span class="cnum">Builder 2 · medium</span>
+        <h3>Basket analysis &amp; association rules</h3>
+        <p>The analyst's job: support, confidence, and lift, and Apriori in pandas - "customers who bought X also bought Y" from history.</p>
+        <span class="meta"><span class="pill light">Kirana baskets</span></span>
+      </a>
+      <a class="course-card" href="courses/b3-item-to-item-cf.html" style="--diff:#FBBF24">
+        <span class="cicon">🔗</span>
+        <span class="cnum">Builder 3 · medium</span>
+        <h3>Item-to-item collaborative filtering</h3>
+        <p>Amazon's classic (Linden 2003): co-occurrence and cosine similarity - plus a live recommender you drive in the browser.</p>
+        <span class="meta"><span class="pill light">★ interactive: recsys-live</span></span>
+      </a>
+      <a class="course-card" href="courses/b4-user-to-user-cf.html" style="--diff:#FBBF24">
+        <span class="cicon">👯</span>
+        <span class="cnum">Builder 4 · medium</span>
+        <h3>Customer-to-customer (user-user) CF</h3>
+        <p>Find shoppers like you, weight their tastes, and predict what you would like - neighbourhoods and similarity in Python.</p>
+        <span class="meta"><span class="pill light">Kirana neighbours</span></span>
+      </a>
+      <a class="course-card" href="courses/b5-content-based.html" style="--diff:#FBBF24">
+        <span class="cicon">🏷️</span>
+        <span class="cnum">Builder 5 · medium</span>
+        <h3>Content-based filtering</h3>
+        <p>Recommend by item features - TF-IDF and embeddings, user profiles, and how content-based rescues the cold-start.</p>
+        <span class="meta"><span class="pill light">Kirana item profiles</span></span>
+      </a>
+      <a class="course-card" href="courses/b6-matrix-factorization.html" style="--diff:#FB923C">
+        <span class="cicon">🧮</span>
+        <span class="cnum">Builder 6 · hands-on</span>
+        <h3>Matrix factorization &amp; latent factors</h3>
+        <p>The Netflix Prize idea: decompose the matrix into hidden factors - SVD and ALS on implicit feedback, in Python.</p>
+        <span class="meta"><span class="pill light">Kirana latent factors</span></span>
+      </a>
+      <a class="course-card" href="courses/b7-modern-deep-recsys.html" style="--diff:#FB923C">
+        <span class="cicon">🤖</span>
+        <span class="cnum">Builder 7 · hands-on</span>
+        <h3>Modern &amp; deep recsys</h3>
+        <p>Two-tower retrieval, embeddings, and interest models - Alibaba's DIN and MIND, where the field is in 2026.</p>
+        <span class="meta"><span class="pill light">The frontier, cited</span></span>
+      </a>
+      <a class="course-card" href="courses/b8-evaluation.html" style="--diff:#FBBF24">
+        <span class="cicon">📏</span>
+        <span class="cnum">Builder 8 · medium</span>
+        <h3>Evaluation</h3>
+        <p>Precision@k, recall, NDCG, and MAP offline; click-through and conversion online - and how to split data for recs.</p>
+        <span class="meta"><span class="pill light">Score the model</span></span>
+      </a>
+      <a class="course-card" href="courses/b9-productionizing.html" style="--diff:#FB923C">
+        <span class="cicon">🚀</span>
+        <span class="cnum">Builder 9 · hands-on</span>
+        <h3>Productionizing</h3>
+        <p>Batch vs real-time serving, the data-scientist-to-devops handoff, feature stores, latency, and revamping the UI to surface recs.</p>
+        <span class="meta"><span class="pill light">Kirana goes live</span></span>
+      </a>
+      <a class="course-card" href="courses/b10-monitoring-iteration.html" style="--diff:#F87171">
+        <span class="cicon">📡</span>
+        <span class="cnum">Builder 10 · hardest</span>
+        <h3>Monitoring &amp; iteration</h3>
+        <p>Algorithm performance monitoring, drift, the feedback loop, retraining, and the guardrails that keep recs diverse and fair.</p>
+        <span class="meta"><span class="pill light">Kirana in production</span></span>
+      </a>
+    </div>
+    <div class="diff-legend">
+      <span><i style="background:#34D399"></i>easy - everyone</span>
+      <span><i style="background:#FBBF24"></i>medium</span>
+      <span><i style="background:#FB923C"></i>hands-on / deciding</span>
+      <span><i style="background:#F87171"></i>hardest</span>
+    </div>
+
+    <div class="rail">
+      <b>An honest note on the examples:</b> Netflix, Amazon, and Alibaba run production stacks far larger than any 45-minute session. This course teaches the published, named core each is famous for - Amazon's item-to-item CF (2003), matrix factorization from the Netflix Prize, and Alibaba's Deep Interest Network - and cites the real papers. The live recommender is real math on a tiny teaching catalog, not a production engine.
+    </div>
+
+    <div class="paths">
+      <h2>Choose your path 🗺️</h2>
+      <p class="plede">Two doors, one course. Leaders get the concepts and the pipeline; builders implement every algorithm in Python - and both meet at the live recommender.</p>
+      <div class="path"><b>🤝 Leader (no code, ever)</b>
+        <a class="pstep" href="courses/a1-why-recs-matter.html">a1</a><span class="parr">→</span>
+        <a class="pstep" href="courses/a2-types-plain-english.html">a2</a><span class="parr">→</span>
+        <a class="pstep" href="courses/a3-ecommerce-vs-fintech.html">a3</a><span class="parr">→</span>
+        <a class="pstep" href="courses/a4-team-pipeline-rr.html">a4</a><span class="parr">→</span>
+        <a class="pstep" href="courses/a5-measuring-recs.html">a5</a><span class="parr">→</span>
+        <a class="pstep" href="courses/a6-strategy-ethics-roadmap.html">a6</a>
+      </div>
+      <div class="path"><b>🛠️ Builder (implement in Python)</b>
+        <a class="pstep" href="courses/b1-recsys-foundations.html">b1</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b2-basket-analysis.html">b2</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b3-item-to-item-cf.html">b3</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b4-user-to-user-cf.html">b4</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b5-content-based.html">b5</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b6-matrix-factorization.html">b6</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b7-modern-deep-recsys.html">b7</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b8-evaluation.html">b8</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b9-productionizing.html">b9</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b10-monitoring-iteration.html">b10</a>
+      </div>
+      <div class="path"><b>🌱 Curious follower (a taste)</b>
+        <a class="pstep" href="courses/a1-why-recs-matter.html">a1</a><span class="parr">→</span>
+        <a class="pstep" href="courses/a2-types-plain-english.html">a2</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b3-item-to-item-cf.html">b3</a>
+      </div>
+      <div class="path"><b>🚀 Full journey (understand AND build)</b>
+        <a class="pstep" href="courses/a1-why-recs-matter.html">a1-a6</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b1-recsys-foundations.html">b1-b10</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section mm-section">
+    <h2>The knowledge map 🧠</h2>
+    <p class="mm-lede">Both tracks at a glance - hover a session to spotlight its concepts, click any node to jump in.</p>
+    <div class="mm-wrap"><div id="mindmap"></div></div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a> · sources: Amazon item-to-item CF (Linden 2003) · Netflix TechBlog + Prize · Alibaba DIN/MIND · recsys textbook canon</span>
+  </footer>
+</main>
+
+<script>
+window.MINDMAP_DATA = {
+  title: "Recommend-\nation",
+  centerColor: "#1E3A8A",
+  sessions: [
+    { label: "Why recs\nmatter", href: "courses/a1-why-recs-matter.html", color: "#34D399",
+      concepts: [
+        { label: "Business value", href: "courses/a1-why-recs-matter.html" },
+        { label: "Netflix homepage", href: "courses/a1-why-recs-matter.html" } ] },
+    { label: "Types in\nplain English", href: "courses/a2-types-plain-english.html", color: "#34D399",
+      concepts: [
+        { label: "User-user", href: "courses/a2-types-plain-english.html" },
+        { label: "Item-item", href: "courses/a2-types-plain-english.html" },
+        { label: "Content-based", href: "courses/a2-types-plain-english.html" } ] },
+    { label: "E-comm vs\nfintech", href: "courses/a3-ecommerce-vs-fintech.html", color: "#FBBF24",
+      concepts: [
+        { label: "Cross-sell", href: "courses/a3-ecommerce-vs-fintech.html" },
+        { label: "Next-best-product", href: "courses/a3-ecommerce-vs-fintech.html" },
+        { label: "Suitability", href: "courses/a3-ecommerce-vs-fintech.html" } ] },
+    { label: "Team +\npipeline", href: "courses/a4-team-pipeline-rr.html", color: "#FBBF24",
+      concepts: [
+        { label: "Analyst to DS", href: "courses/a4-team-pipeline-rr.html" },
+        { label: "Devops to monitor", href: "courses/a4-team-pipeline-rr.html" } ] },
+    { label: "Measuring\nrecs", href: "courses/a5-measuring-recs.html", color: "#FB923C",
+      concepts: [
+        { label: "CTR + conversion", href: "courses/a5-measuring-recs.html" },
+        { label: "A/B + feedback", href: "courses/a5-measuring-recs.html" } ] },
+    { label: "Strategy +\nethics", href: "courses/a6-strategy-ethics-roadmap.html", color: "#FB923C",
+      concepts: [
+        { label: "Cold-start", href: "courses/a6-strategy-ethics-roadmap.html" },
+        { label: "Diversity + ethics", href: "courses/a6-strategy-ethics-roadmap.html" } ] },
+    { label: "Recsys\nfoundations", href: "courses/b1-recsys-foundations.html", color: "#34D399",
+      concepts: [
+        { label: "Interactions matrix", href: "courses/b1-recsys-foundations.html" },
+        { label: "The 4 families", href: "courses/b1-recsys-foundations.html" },
+        { label: "Python toolkit", href: "courses/b1-recsys-foundations.html" } ] },
+    { label: "Basket\nanalysis", href: "courses/b2-basket-analysis.html", color: "#FBBF24",
+      concepts: [
+        { label: "Support/lift", href: "courses/b2-basket-analysis.html" },
+        { label: "Apriori", href: "courses/b2-basket-analysis.html" } ] },
+    { label: "Item-item\nCF", href: "courses/b3-item-to-item-cf.html", color: "#FBBF24",
+      concepts: [
+        { label: "Co-occurrence", href: "courses/b3-item-to-item-cf.html" },
+        { label: "Cosine sim", href: "courses/b3-item-to-item-cf.html" },
+        { label: "Amazon 2003", href: "courses/b3-item-to-item-cf.html" } ] },
+    { label: "User-user\nCF", href: "courses/b4-user-to-user-cf.html", color: "#FBBF24",
+      concepts: [
+        { label: "Neighbourhoods", href: "courses/b4-user-to-user-cf.html" },
+        { label: "Similarity", href: "courses/b4-user-to-user-cf.html" } ] },
+    { label: "Content-\nbased", href: "courses/b5-content-based.html", color: "#FBBF24",
+      concepts: [
+        { label: "TF-IDF", href: "courses/b5-content-based.html" },
+        { label: "Cold-start", href: "courses/b5-content-based.html" } ] },
+    { label: "Matrix\nfactorization", href: "courses/b6-matrix-factorization.html", color: "#FB923C",
+      concepts: [
+        { label: "Latent factors", href: "courses/b6-matrix-factorization.html" },
+        { label: "SVD / ALS", href: "courses/b6-matrix-factorization.html" } ] },
+    { label: "Modern &\ndeep", href: "courses/b7-modern-deep-recsys.html", color: "#FB923C",
+      concepts: [
+        { label: "Two-tower", href: "courses/b7-modern-deep-recsys.html" },
+        { label: "DIN / MIND", href: "courses/b7-modern-deep-recsys.html" } ] },
+    { label: "Evaluation", href: "courses/b8-evaluation.html", color: "#FBBF24",
+      concepts: [
+        { label: "Precision@k / NDCG", href: "courses/b8-evaluation.html" },
+        { label: "Offline vs online", href: "courses/b8-evaluation.html" } ] },
+    { label: "Production-\nizing", href: "courses/b9-productionizing.html", color: "#FB923C",
+      concepts: [
+        { label: "Serving", href: "courses/b9-productionizing.html" },
+        { label: "UI revamp", href: "courses/b9-productionizing.html" } ] },
+    { label: "Monitoring\n& iteration", href: "courses/b10-monitoring-iteration.html", color: "#F87171",
+      concepts: [
+        { label: "Drift", href: "courses/b10-monitoring-iteration.html" },
+        { label: "Feedback loop", href: "courses/b10-monitoring-iteration.html" },
+        { label: "Guardrails", href: "courses/b10-monitoring-iteration.html" } ] }
+  ]
+};
+</script>
+<script src="assets/mindmap.js?v=1"></script>
+<script src="assets/app.js?v=1"></script>
+</body>
+</html>

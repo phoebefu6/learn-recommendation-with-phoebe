@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder session 2 · Basket analysis &amp; association rules - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Builder session 2 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Builder track · Session 2 of 10</div>
+    <h1>Basket analysis: <span class="accent">support, confidence, lift and Apriori</span></h1>
+    <p class="sub">Before any model, the analyst answers one question from the receipts alone: what gets bought together? This session builds market basket analysis on Kirana's transactions in real pandas - the three numbers that grade a pairing (support, confidence, lift), the Apriori algorithm that finds frequent itemsets without checking every combination, and how to read a rule {A}-&gt;{B} so it drives a real "frequently bought together" shelf.</p>
+    <div class="chip-row">
+      <span class="chip level">🟢 Builder track</span>
+      <span class="chip audience">Practitioners: analysts · data scientists · engineers</span>
+      <span class="chip audience">Python 3.10+ · a notebook</span>
+      <span class="chip time">Builds on b1</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · Support, confidence, lift</span>
+      <span class="a3" style="flex:5">18-42 · Build-along: rules by hand + mlxtend</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>The analyst's first move</h2>
+    </div>
+    <p class="lede">Long before a data scientist trains a model, an analyst looks at the receipts and asks a plain question: which items travel together in the same basket? That is <strong>market basket analysis</strong>, and its answers - "people who buy a yoga mat tend to buy a strap" - become the "frequently bought together" shelf on day one, with no machine learning at all. Tonight we compute the three numbers that grade every co-purchase, then run the Apriori algorithm that made this practical at scale. Everything runs on Kirana, our running store, so the pipeline stays one continuous story from b1's matrix onward.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill peach">★ Run it now (Python)</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A working rules table from Kirana's baskets computed two ways - support, confidence and lift by hand in pandas, and the same rules the library way with mlxtend's Apriori - plus the judgement to read {A}-&gt;{B} by lift and know when a pairing is real signal versus two popular items coinciding.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: THE THREE NUMBERS ============ -->
+  <section class="section" id="metrics">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers the association-rule canon</span>
+      <h2>Support, confidence, lift <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">An association rule is a statement like {Yoga Mat} -&gt; {Strap}: "baskets with a mat also tend to have a strap". Three numbers grade it, and each answers a different question. Get these three and you can read any rules table in the field.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The three basket-analysis metrics: support is how often the pair appears, confidence is the conditional buy rate, lift is confidence over baseline">
+        <style>
+          .b2mT { font: 700 15px Inter, sans-serif; fill: #FFFFFF; }
+          .b2mF { font: 700 13px Inter, sans-serif; fill: #DCE6FB; }
+          .b2mX { font: 400 12px Inter, sans-serif; fill: #DCE6FB; }
+          .b2mN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text x="30" y="30" style="font:700 14px Inter,sans-serif;fill:#111634;">Three numbers grade one rule: {Mat} -&gt; {Strap}</text>
+        <rect x="24" y="48" width="264" height="150" rx="12" fill="#1E3A8A"/>
+        <text class="b2mT" x="44" y="82">Support</text>
+        <text class="b2mF" x="44" y="108">how often, overall?</text>
+        <text class="b2mX" x="44" y="134">share of ALL baskets</text>
+        <text class="b2mX" x="44" y="154">that hold both items</text>
+        <text class="b2mX" x="44" y="182">P(Mat and Strap)</text>
+        <rect x="308" y="48" width="264" height="150" rx="12" fill="#2563EB"/>
+        <text class="b2mT" x="328" y="82">Confidence</text>
+        <text class="b2mF" x="328" y="108">how reliable, given A?</text>
+        <text class="b2mX" x="328" y="134">of mat baskets, the share</text>
+        <text class="b2mX" x="328" y="154">that ALSO hold a strap</text>
+        <text class="b2mX" x="328" y="182">P(Strap | Mat)</text>
+        <rect x="592" y="48" width="264" height="150" rx="12" fill="#FCE7F3" stroke="#DB2777" stroke-width="1.5"/>
+        <text x="612" y="82" style="font:700 15px Inter,sans-serif;fill:#111634;">Lift</text>
+        <text x="612" y="108" style="font:700 13px Inter,sans-serif;fill:#6B0F3F;">is it real, vs chance?</text>
+        <text x="612" y="134" style="font:400 12px Inter,sans-serif;fill:#5B6480;">confidence divided by the</text>
+        <text x="612" y="154" style="font:400 12px Inter,sans-serif;fill:#5B6480;">strap's baseline buy rate</text>
+        <text x="612" y="182" style="font:400 12px Inter,sans-serif;fill:#5B6480;">P(Strap | Mat) / P(Strap)</text>
+        <rect x="24" y="222" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b2mN" x="48" y="234">Lift &gt; 1 means the pair is bought together MORE than chance - real signal, not two coincidentally popular items.</text>
+        <text x="48" y="264" style="font:400 12px Inter,sans-serif;fill:#5B6480;">Lift = 1 means independent (no relationship). Lift &lt; 1 means they repel - buying one makes the other less likely.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the three metrics and what each one asks</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>A worked Kirana example, by hand<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Say Kirana has <strong>10 baskets</strong>. A yoga mat appears in 4 of them; a strap appears in 5; both appear together in 3. Now the three numbers fall out:</p>
+        <ul>
+          <li><strong>Support</strong>{Mat, Strap} = 3 / 10 = <strong>0.30</strong>. Both items show up together in 30% of all baskets - common enough to bother with.</li>
+          <li><strong>Confidence</strong> {Mat} -&gt; {Strap} = 3 / 4 = <strong>0.75</strong>. Of the 4 mat baskets, 3 also had a strap - a strong conditional rate.</li>
+          <li><strong>Lift</strong> = confidence / P(Strap) = 0.75 / (5/10) = 0.75 / 0.50 = <strong>1.5</strong>. Mat buyers grab a strap 1.5x more than the average shopper does.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>Why lift saves you from a classic trap.</strong> Bags appear in almost every Kirana basket, so any rule {X} -&gt; {Bag} will show sky-high confidence - not because X drives bags, but because everything does. Lift divides that confidence by the bag's own baseline, collapsing it back toward 1. That is how the analyst avoids recommending the obvious bestseller to everyone and finds the pairings that are genuinely surprising.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Direction, thresholds, and the caveats<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Three things that trip up first-time analysts:</p>
+        <ul>
+          <li><strong>Rules have direction.</strong> {Mat} -&gt; {Strap} and {Strap} -&gt; {Mat} share the same support but usually differ in confidence, because the two items appear in different totals. Always read the arrow.</li>
+          <li><strong>Set a support floor.</strong> A rule seen in 2 baskets out of a million is noise. Analysts set a minimum support so rare accidents do not surface as recommendations.</li>
+          <li><strong>Correlation, not cause.</strong> A high-lift rule says two items co-occur, not that one causes the other. It is a great candidate for a shelf or a test, not a proven mechanism.</li>
+        </ul>
+        <p>These three numbers are the whole vocabulary of basket analysis. The only hard part left is computing them at scale - which is where Apriori comes in.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: APRIORI ============ -->
+  <section class="section" id="apriori">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers Agrawal &amp; Srikant (1994)</span>
+      <h2>Apriori: finding frequent itemsets without brute force <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">With 100 items there are over a trillion possible itemsets. You cannot count support for all of them. Apriori (Agrawal &amp; Srikant, 1994) is the classic trick that makes it tractable, and it rests on one beautifully simple property.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 268" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The co-occurrence to rules flow: baskets become item pairs via a co-occurrence count, then frequent pairs become directed rules with a lift score">
+        <style>
+          .b2fT { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+          .b2fX { font: 400 11.5px Inter, sans-serif; fill: #DCE6FB; }
+          .b2fI { font: 700 14px Inter, sans-serif; fill: #111634; }
+          .b2fXi { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .b2fN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+          .b2fA { font: 700 20px Inter, sans-serif; fill: #C7D2E4; }
+        </style>
+        <rect x="24" y="46" width="200" height="96" rx="12" fill="#1E3A8A"/>
+        <text class="b2fT" x="44" y="76">1 · Baskets</text>
+        <text class="b2fX" x="44" y="100">each receipt =</text>
+        <text class="b2fX" x="44" y="118">a set of items</text>
+        <text class="b2fX" x="44" y="136">{Mat, Strap, Bag}</text>
+        <text class="b2fA" x="238" y="100">→</text>
+        <rect x="268" y="46" width="200" height="96" rx="12" fill="#2563EB"/>
+        <text class="b2fT" x="288" y="76">2 · Co-occurrence</text>
+        <text class="b2fX" x="288" y="100">count item PAIRS</text>
+        <text class="b2fX" x="288" y="118">that share a basket</text>
+        <text class="b2fX" x="288" y="136">keep frequent ones</text>
+        <text class="b2fA" x="482" y="100">→</text>
+        <rect x="512" y="46" width="200" height="96" rx="12" fill="#60A5FA"/>
+        <text class="b2fI" x="532" y="76">3 · Rules</text>
+        <text class="b2fXi" x="532" y="100">turn each pair into</text>
+        <text class="b2fXi" x="532" y="118">a directed rule</text>
+        <text class="b2fXi" x="532" y="136">{Mat} -&gt; {Strap}</text>
+        <text class="b2fA" x="726" y="100">→</text>
+        <rect x="756" y="46" width="100" height="96" rx="12" fill="#FCE7F3" stroke="#DB2777" stroke-width="1.5"/>
+        <text class="b2fI" x="776" y="82">Lift</text>
+        <text class="b2fXi" x="776" y="106">rank by</text>
+        <text class="b2fXi" x="776" y="124">how real</text>
+        <rect x="24" y="176" width="832" height="44" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b2fI" x="44" y="203">Apriori property: if {Mat, Strap} is rare, any bigger set containing it is rarer - so prune it and never count it.</text>
+        <rect x="24" y="240" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b2fN" x="48" y="252">That pruning is what turns a trillion candidates into a handful worth scoring.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - baskets to co-occurrence to directed rules ranked by lift</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The downward-closure idea, in one line<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Apriori's engine is the <strong>downward-closure property</strong>: if an itemset is infrequent, every superset of it is also infrequent. If {Mat, Strap} appears in too few baskets to clear your support floor, then {Mat, Strap, Bag} can only appear in fewer - so there is no point ever counting it.</p>
+        <ul>
+          <li>Start with single items that clear the support floor.</li>
+          <li>Combine them into pairs, but only pairs built from already-frequent singles.</li>
+          <li>Count support for those pairs; keep the frequent ones; grow to triples the same way. Stop when nothing frequent remains.</li>
+          <li>From every frequent itemset, generate rules and score each by confidence and lift.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>Why it still matters</strong>
+          Deep models came later, but Apriori is 30 years old and still the honest first pass: it is fast, fully explainable ("we show these together because 62% of mat baskets include a strap"), and needs no training. For a "frequently bought together" shelf it is often all you need.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO 1 ============ -->
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Demo 1 of 2</span>
+      <h2>Rules by hand with pandas <span class="tag demo">★ 12 min · everyone builds</span></h2>
+    </div>
+    <p class="lede">Compute support, confidence and lift yourself from Kirana's baskets - no library - so the three numbers are never a black box. The trick is a co-occurrence matrix from <code>mat.T.dot(mat)</code>.</p>
+
+    <div class="steps">
+      <div class="step"><p>Build a basket matrix (baskets x items, 1 = item in basket) - the same shape as b1's <code>mat</code>, but one row per receipt.</p></div>
+      <div class="step"><p>Get pair co-occurrence counts with <code>mat.T.dot(mat)</code> - each cell is how many baskets hold both items.</p></div>
+      <div class="step"><p>Turn counts into support, confidence and lift for every directed pair.</p></div>
+      <div class="step"><p>Sort by lift and read the top rules.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - support, confidence, lift by hand</span>import pandas as pd, numpy as np
+
+# Kirana baskets: one row per receipt (implicit, 1 = item in basket)
+baskets = [
+    ["Yoga Mat","Strap","Bag"],
+    ["Yoga Mat","Strap"],
+    ["Yoga Mat","Strap","Bottle"],
+    ["Yoga Mat","Bag"],
+    ["Strap","Bottle"],
+    ["Bottle","Bag"],
+    ["Yoga Mat","Strap","Bottle","Bag"],
+    ["Strap","Bag"],
+    ["Bottle"],
+    ["Yoga Mat","Bottle"],
+]
+items = sorted({i for b in baskets for i in b})
+mat = pd.DataFrame([{i: int(i in b) for i in items} for b in baskets])
+
+n = len(mat)                          # number of baskets
+co = mat.T.dot(mat)                   # co-occurrence counts (item x item)
+sup1 = mat.sum() / n                  # single-item support
+
+rules = []
+for a in items:
+    for b in items:
+        if a == b:
+            continue
+        sup_ab = co.loc[a, b] / n     # support of the pair {a,b}
+        conf   = co.loc[a, b] / co.loc[a, a]   # P(b | a)
+        lift   = conf / sup1[b]                # vs b's baseline
+        if co.loc[a, b] &gt; 0:
+            rules.append((a, b, round(sup_ab,2), round(conf,2), round(lift,2)))
+
+rules = pd.DataFrame(rules, columns=["A","B","support","confidence","lift"])
+print(rules.sort_values("lift", ascending=False).head(8).to_string(index=False))</div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Read the top of that table like the analyst does.</strong> {Yoga Mat} -&gt; {Strap} lands high on lift, so it earns a spot on the mat's product page. A rule pointing at Bag will show decent confidence but lift near 1, because Bag is in half the baskets anyway - exactly the coincidence lift is built to expose. You just did, in 20 lines, the analysis that fills a "frequently bought together" shelf.</p>
+    </div>
+  </section>
+
+  <!-- ============ DEMO 2 ============ -->
+  <section class="section" id="demo-2">
+    <div class="section-kicker">
+      <span class="klabel">Demo 2 of 2</span>
+      <h2>The same rules with mlxtend Apriori <span class="tag demo">★ 10 min · build your own</span></h2>
+    </div>
+    <p class="lede">In production you reach for a tested library. mlxtend gives you <code>apriori</code> for frequent itemsets and <code>association_rules</code> for the graded rules - the same numbers you just computed, on a one-hot basket frame.</p>
+
+    <div class="steps">
+      <div class="step"><p>One-hot the baskets into a boolean frame (<code>TransactionEncoder</code>, or reuse the <code>mat</code> from Demo 1 as booleans).</p></div>
+      <div class="step"><p>Run <code>apriori</code> with a <code>min_support</code> floor to get frequent itemsets.</p></div>
+      <div class="step"><p>Pass those to <code>association_rules</code> with a lift threshold, then sort by lift.</p></div>
+      <div class="step"><p>Compare the top rows to your hand-built table - they match.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - mlxtend apriori + association_rules</span># pip install mlxtend
+from mlxtend.frequent_patterns import apriori, association_rules
+
+# reuse Demo 1 baskets: one-hot boolean frame (baskets x items)
+onehot = mat.astype(bool)
+
+# frequent itemsets that clear a 20% support floor
+freq = apriori(onehot, min_support=0.2, use_colnames=True)
+
+# graded rules, keep only the ones bought together more than chance
+rules = association_rules(freq, metric="lift", min_threshold=1.0)
+
+cols = ["antecedents","consequents","support","confidence","lift"]
+out = rules[cols].sort_values("lift", ascending=False)
+print(out.head(8).to_string(index=False))</div>
+
+    <div class="callout tip">
+      <strong>Read {A} -&gt; {B} by lift, always</strong>
+      Sort by lift, then sanity-check support so you are not acting on a two-basket fluke. mlxtend's <code>antecedents</code> is the {A}, <code>consequents</code> is the {B}. This same frequent-itemset engine scales to real logs with a scipy-sparse frame - the API does not change, only the data size does.
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 30-45 min total</span></h2>
+    </div>
+    <ul>
+      <li>Take a real (non-confidential) order export, group it into baskets, and compute support, confidence and lift for your top item pairs by hand - as in Demo 1.</li>
+      <li>Run mlxtend's <code>apriori</code> + <code>association_rules</code> on the same data and confirm the top rules match your hand calculation.</li>
+      <li>Find one rule with high confidence but lift near 1. Explain in a sentence why it is a trap, not a recommendation.</li>
+      <li>Set a sensible <code>min_support</code> for your store's size and note how the rule count changes as you raise it.</li>
+      <li>Optional: skim Agrawal &amp; Srikant (1994) and locate the downward-closure property in the paper.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">Taught from the association-rule canon and the founding Apriori paper. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Apriori - Agrawal &amp; Srikant (1994), "Fast Algorithms for Mining Association Rules", VLDB</span><span class="note">Part 2 · frequent itemsets, downward-closure pruning</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Support / confidence / lift canon (association-rule mining)</span><span class="note">Part 1 + Demo 1 · defined and computed by hand</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">mlxtend - frequent_patterns (apriori, association_rules)</span><span class="note">Demo 2 · the library implementation of the same math</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · What does lift &gt; 1 for {A} -&gt; {B} tell you?</p>
+      <button class="qopt" type="button">A · A and B are never bought together</button>
+      <button class="qopt" type="button">B · B is the single most popular item</button>
+      <button class="qopt" type="button">C · A and B are bought together more often than chance would predict - real signal</button>
+      <p class="qwhy">Lift is confidence divided by B's baseline rate. Above 1 means buying A genuinely raises the odds of B; at 1 they are independent; below 1 they repel.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">2 · A rule has 0.9 confidence but lift of 1.0. What is going on?</p>
+      <button class="qopt" type="button">A · B is just very popular; the high confidence is the baseline, not a real relationship</button>
+      <button class="qopt" type="button">B · It is the strongest rule in the table</button>
+      <button class="qopt" type="button">C · The support must be zero</button>
+      <p class="qwhy">When B appears in most baskets anyway, confidence to B is high for any A. Lift near 1 exposes that the pairing is a coincidence, not a driver - exactly the trap lift is designed to catch.</p>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">3 · What does Apriori's downward-closure property let you do?</p>
+      <button class="qopt" type="button">A · Predict a user's exact rating for an item</button>
+      <button class="qopt" type="button">B · Prune any superset of an infrequent itemset without counting it - making the search tractable</button>
+      <button class="qopt" type="button">C · Guarantee causation between two items</button>
+      <p class="qwhy">If an itemset is infrequent, every larger set containing it is also infrequent. Apriori uses that to skip counting the vast majority of candidate itemsets.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Builder session 2 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Market basket analysis</b><span>the analyst's first move: what gets bought together, straight from the receipts, no model.</span></div>
+      <div class="cheat-item"><b>Support</b><span>share of ALL baskets holding both items: P(A and B). Set a floor to kill noise.</span></div>
+      <div class="cheat-item"><b>Confidence</b><span>of A-baskets, the share that also hold B: P(B | A). Directional - read the arrow.</span></div>
+      <div class="cheat-item"><b>Lift</b><span>confidence / P(B). &gt; 1 = together more than chance; = 1 independent; &lt; 1 repel.</span></div>
+      <div class="cheat-item"><b>The bestseller trap</b><span>high confidence into a popular item is fake; lift collapses it back toward 1.</span></div>
+      <div class="cheat-item"><b>Apriori</b><span>Agrawal &amp; Srikant 1994: grow frequent itemsets level by level, prune infrequent supersets.</span></div>
+      <div class="cheat-item"><b>pandas move</b><span>co-occurrence via mat.T.dot(mat); support/confidence/lift fall straight out of the counts.</span></div>
+      <div class="cheat-item"><b>Next session</b><span>b3 - item-to-item collaborative filtering (Amazon 2003) with a live recommender.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Builder session 2 of 10 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="b3-item-to-item-cf.html">Next: Item-to-item collaborative filtering →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

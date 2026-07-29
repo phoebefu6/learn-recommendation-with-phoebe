@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder session 3 · Item-to-item collaborative filtering - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+<style>
+  /* ---- recsys-live real recommender (scoped rl-*) ---- */
+  .rl-shell { border: 1px solid var(--hairline); border-radius: var(--radius); background: linear-gradient(180deg,#fff,#EFF3FE); padding: 1rem 1.1rem; margin: 1.2rem 0 .4rem; }
+  .rl-top { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; margin-bottom: .9rem; }
+  .rl-you { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+  .rl-youlabel { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--indigo); }
+  .rl-chip { font-size: .82rem; font-weight: 700; background: var(--indigo-50); color: var(--indigo); border-radius: 999px; padding: .25rem .7rem; }
+  .rl-youhint { font-size: .76rem; color: var(--muted); width: 100%; }
+  .rl-algos { display: flex; gap: .4rem; flex-wrap: wrap; }
+  .rl-algo { border: 1px solid var(--hairline); background: #fff; border-radius: 999px; padding: .38rem .7rem; font-size: .76rem; font-weight: 700; cursor: pointer; color: var(--muted); transition: all .14s ease; }
+  .rl-algo:hover { border-color: var(--indigo-soft); }
+  .rl-algo.rl-on { background: var(--indigo); color: #fff; border-color: var(--indigo); }
+  .rl-meters { display: flex; gap: 1rem; flex-wrap: wrap; align-items: stretch; margin-bottom: .8rem; }
+  .rl-meter { border: 1px solid var(--hairline); border-radius: 12px; background: #fff; padding: .6rem .8rem; }
+  .rl-meter:first-child { min-width: 8.5rem; }
+  .rl-note { flex: 1; min-width: 12rem; font-size: .84rem; color: var(--ink); line-height: 1.5; }
+  .rl-note b { color: var(--indigo); }
+  .rl-hits { display: block; font-size: .76rem; color: var(--muted); margin-top: .2rem; }
+  .rl-mlabel { display: block; font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; color: var(--muted); }
+  .rl-mval { font-size: 1.8rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; color: var(--ink); }
+  .rl-mval.rl-good { color: var(--indigo); }
+  .rl-mval.rl-bad { color: var(--amber); }
+  .rl-bar { height: 7px; border-radius: 999px; background: var(--hairline); margin-top: .35rem; overflow: hidden; width: 6.5rem; }
+  .rl-bar i { display: block; height: 100%; background: linear-gradient(90deg,var(--indigo-mid),var(--indigo)); transition: width .3s ease; }
+  .rl-recslabel { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--indigo); margin-bottom: .5rem; }
+  .rl-recslabel span { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--muted); }
+  .rl-recs { display: flex; flex-direction: column; gap: .4rem; }
+  .rl-rec { display: flex; align-items: center; gap: .7rem; border: 1px solid var(--hairline); border-radius: 10px; background: #fff; padding: .5rem .7rem; }
+  .rl-rec.rl-rel { border-color: #34D399; background: #F0FBF6; }
+  .rl-rank { font-size: .8rem; font-weight: 800; color: var(--muted); width: 1rem; }
+  .rl-item { font-size: .9rem; font-weight: 700; min-width: 8.5rem; }
+  .rl-why { font-size: .8rem; color: var(--muted); flex: 1; }
+  .rl-tick { font-weight: 800; color: #059669; }
+  .rl-rail { font-size: .78rem; color: var(--muted); line-height: 1.55; margin-top: .8rem; border-top: 1px dashed var(--hairline); padding-top: .6rem; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Builder session 3 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Builder track · Session 3 of 10</div>
+    <h1>Item-to-item CF: <span class="accent">"customers who bought this..."</span></h1>
+    <p class="sub">This is the algorithm behind Amazon's "customers who bought this also bought" - the item-to-item collaborative filtering that Linden, Smith and York published in 2003 and that IEEE later named the paper best standing the test of time. You will build it in real Python on Kirana, and then drive a live recommender in the browser: flip between popularity, collaborative, and content algorithms and watch the actual recommendations - and the accuracy - change.</p>
+    <div class="chip-row">
+      <span class="chip level">🟡 Builder track</span>
+      <span class="chip audience">Practitioners: analysts · data scientists · engineers</span>
+      <span class="chip audience">Python · a notebook</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-17 · Item-item CF</span>
+      <span class="a3" style="flex:5">17-42 · Live recommender + build-along</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Why item-to-item, and why it scaled the web</h2>
+    </div>
+    <p class="lede">Early recommenders compared users to users - but with tens of millions of users, that is slow and thrashes as people change. Amazon's insight in 2003 was to flip it: compare <em>items</em> to items. There are fewer items than users, item relationships are stable, and the expensive similarity computation can be done offline, leaving a fast lookup at request time. That is why "customers who bought this also bought" could run on every product page on the planet.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill peach">★ Run it now (Python)</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      Item-item collaborative filtering built in real Python (co-occurrence and cosine similarity), an understanding of why it scales where user-user does not, hands-on time driving the live recommender across five algorithms, and Kirana's "customers who bought this also bought" for any product.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: ITEM-ITEM CF ============ -->
+  <section class="section" id="itemitem">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Amazon item-to-item CF (Linden, Smith &amp; York 2003)</span>
+      <h2>Items that go together <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">Two items are "similar" if the same shoppers tend to buy both. Represent each item as its column in the interactions matrix - the set of users who bought it - and measure similarity with cosine. Then to recommend for a shopper, take the items they bought and surface the items most similar to those.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Item-item similarity: each item is the set of users who bought it; cosine similarity between two items is high when the same users bought both; recommend items similar to what the shopper bought">
+        <style>
+          .b3T { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .b3I { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .b3X { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .b3N { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+          .b3Ar { stroke: #C7D2E4; stroke-width: 2.5; fill: none; marker-end: url(#b3ah); }
+        </style>
+        <defs><marker id="b3ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="#C7D2E4" stroke-width="1.5"/></marker></defs>
+        <rect x="24" y="56" width="196" height="60" rx="12" fill="#2563EB"/>
+        <text class="b3T" x="44" y="82">You bought:</text>
+        <text class="b3T" x="44" y="102">Yoga Mat + Protein</text>
+        <rect x="330" y="30" width="210" height="46" rx="10" fill="#1E3A8A"/>
+        <text class="b3T" x="350" y="58">Bought with Yoga Mat -&gt;</text>
+        <rect x="330" y="90" width="210" height="46" rx="10" fill="#1E3A8A"/>
+        <text class="b3T" x="350" y="118">Bought with Protein -&gt;</text>
+        <line class="b3Ar" x1="222" y1="76" x2="328" y2="53"/>
+        <line class="b3Ar" x1="222" y1="96" x2="328" y2="113"/>
+        <rect x="600" y="46" width="256" height="120" rx="12" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b3I" x="622" y="72">Recommend the most</text>
+        <text class="b3I" x="622" y="90">similar items:</text>
+        <text class="b3X" x="622" y="114">Water Bottle, Dumbbells,</text>
+        <text class="b3X" x="622" y="132">Running Shoes</text>
+        <text class="b3X" x="622" y="154">(high cosine with your items)</text>
+        <rect x="24" y="212" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b3N" x="48" y="224">Item similarities are precomputed offline, so serving a recommendation is a fast lookup.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - item-item CF: recommend items similar to what you already bought</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Cosine similarity, and why offline precompute is the trick<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Cosine similarity between two item columns is the count of users who bought <em>both</em>, normalized by how popular each is - so it rewards genuine co-purchase, not just popularity. The key engineering move is <strong>when</strong> you compute it:</p>
+        <ul>
+          <li><strong>Offline (batch):</strong> compute the full item-item similarity table on a schedule. Expensive, but done away from the user.</li>
+          <li><strong>At request time:</strong> for the shopper's items, look up the top-similar items and combine. Fast - a few lookups, no model run.</li>
+          <li><strong>Why it beat user-user:</strong> items are fewer and more stable than users, so the precomputed table stays valid longer and is smaller to store.</li>
+        </ul>
+        <div class="prompt-box good"><span class="label">★ Run it now (Python) - item-item similarity</span>from sklearn.metrics.pairwise import cosine_similarity
+import pandas as pd
+
+# mat: users x items (implicit 1/0) from session b1
+item_sim = pd.DataFrame(
+    cosine_similarity(mat.T),          # transpose -&gt; items x items
+    index=mat.columns, columns=mat.columns,
+)
+# items most similar to "Yoga Mat"
+print(item_sim["Yoga Mat"].sort_values(ascending=False).head(4))</div>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>Amazon, 2003 (Linden, Smith &amp; York).</strong> The paper "Amazon.com Recommendations: Item-to-Item Collaborative Filtering" (IEEE Internet Computing 7(1):76-80) described exactly this - and in 2017 IEEE gave it the Test-of-Time award. The reason it endured: the heavy computation is offline and per-item, so recommendations serve instantly at web scale. You just built its core.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Co-occurrence: the "also bought" count<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The simplest cousin of cosine is raw co-occurrence: for item X, count how often each other item appears in the same shopper's basket. It powers a literal "customers who bought X also bought Y". Cosine improves on it by dividing out popularity so a mega-seller does not look similar to everything.</p>
+        <div class="prompt-box good"><span class="label">★ Run it now (Python) - "also bought" co-occurrence</span># co-occurrence = how many shoppers bought both X and Y
+co = mat.T.dot(mat)                     # items x items counts
+import numpy as np
+np.fill_diagonal(co.values, 0)          # ignore an item with itself
+print(co["Yoga Mat"].sort_values(ascending=False).head(3))</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ INTERACTIVE: THE LIVE RECOMMENDER ============ -->
+  <section class="section" id="simulator">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · the live recommender</span>
+      <h2>Drive a real recommender: five algorithms, one shopper <span class="tag demo">★ 8 min · everyone plays</span></h2>
+    </div>
+    <p class="lede">This is not a mock-up - it computes real recommendations in your browser on a tiny Kirana catalog, with genuine cosine similarity, co-occurrence, content scoring, and precision@3 against a held-out relevant set. You are a fitness-leaning shopper who bought a Yoga Mat and Protein Powder. Flip between the algorithms and watch the recommendations, and the accuracy, change. Notice how popularity ignores you completely, and how item-item CF - the algorithm you just built - nails it.</p>
+
+    <div id="recsys-live"></div>
+
+    <div class="callout tip">
+      <strong>What the recommender is showing</strong>
+      Popularity recommends the store's bestsellers (all kitchen gear) and scores 0% - it never looked at you. User-user CF finds shoppers like you and climbs. Item-item CF and content-based both reach 100% here, because your two purchases point clearly at more fitness items. On a bigger, messier catalog the ranking between them gets interesting - which is exactly why you evaluate (b8) rather than guess.
+    </div>
+  </section>
+
+  <!-- ============ DEMO 1 ============ -->
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Demo 1 of 2</span>
+      <h2>Recommend for a shopper with item-item CF <span class="tag demo">★ 12 min · everyone builds</span></h2>
+    </div>
+    <p class="lede">Turn the item-item similarity table into actual per-shopper recommendations - the function that would sit behind a Kirana product page.</p>
+
+    <div class="steps">
+      <div class="step"><p>Compute the item-item cosine similarity table from Kirana's matrix (from Part 1).</p></div>
+      <div class="step"><p>For a shopper, take the items they bought, pull each item's similar items, and sum the similarity scores.</p></div>
+      <div class="step"><p>Remove items they already own and return the top-N by score.</p></div>
+      <div class="step"><p>Sanity-check: the recommendations should be things that plausibly go with what they bought - not the store bestsellers.</p></div>
+      <div class="step"><p>Compare to the popularity baseline from b1 on the same shopper. Personalization should visibly differ.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - item-item recommendations</span>def recommend_itemitem(user, mat, item_sim, n=3):
+    bought = mat.columns[mat.loc[user] &gt; 0]
+    # sum similarity from each bought item to every other item
+    scores = item_sim[bought].sum(axis=1)
+    scores = scores.drop(index=bought)          # do not recommend owned items
+    return scores.sort_values(ascending=False).head(n)
+
+print(recommend_itemitem("u1", mat, item_sim))</div>
+
+    <div class="callout tip">
+      <strong>The offline / online split, in code</strong>
+      Notice <code>item_sim</code> is computed once (offline) and reused for every shopper (online). In production that table is refreshed on a schedule (b9) and cached; the per-request work is just the sum-and-sort you see here. That separation is what makes item-item CF fast enough for every page view.
+    </div>
+  </section>
+
+  <!-- ============ DEMO 2 ============ -->
+  <section class="section" id="demo-2">
+    <div class="section-kicker">
+      <span class="klabel">Demo 2 of 2</span>
+      <h2>Ship "customers who bought this also bought" <span class="tag demo">★ 8 min · build your own</span></h2>
+    </div>
+    <p class="lede">The product-page classic: given one item, the items most often bought alongside it. This is item-item CF pointed at a single item instead of a shopper.</p>
+
+    <div class="steps">
+      <div class="step"><p>Take the item-item similarity (or co-occurrence) table.</p></div>
+      <div class="step"><p>For a given product, return its top-N most similar items, excluding itself.</p></div>
+      <div class="step"><p>That list is exactly the "customers who bought this also bought" strip. It is content-free - it works from behaviour alone.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - "also bought" for a product</span>def also_bought(item, item_sim, n=3):
+    return item_sim[item].drop(index=item).sort_values(ascending=False).head(n)
+
+print(also_bought("Yoga Mat", item_sim))   # the product-page strip</div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>One table, two products.</strong> The same precomputed similarity table drives both the personalized shopper recommendations (Demo 1) and the per-product "also bought" strip (Demo 2). That reuse is why item-item CF is such good value: compute similarity once, power several surfaces. In b9 you will decide how often to refresh it and where to cache it.</p>
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 30-45 min total</span></h2>
+    </div>
+    <ul>
+      <li>Build the item-item similarity table on your own (non-confidential) data and generate recommendations for a few users.</li>
+      <li>Ship the "customers who bought this also bought" list for three products; check the results pass the smell test.</li>
+      <li>Play the live recommender again and predict the precision@3 before you switch each algorithm - predicting it means you understand what each does.</li>
+      <li>Compare cosine vs raw co-occurrence for one popular item - see how cosine stops a bestseller from looking similar to everything.</li>
+      <li>Optional: read the Amazon 2003 paper and note the offline/online split in their own words.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">Taught from the founding paper and the recsys canon. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Linden, Smith &amp; York (2003), "Amazon.com Recommendations: Item-to-Item Collaborative Filtering," IEEE Internet Computing 7(1):76-80</span><span class="note">Part 1 + demos · the algorithm, the offline/online split, why it scales</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Cosine similarity + co-occurrence (recsys canon)</span><span class="note">Part 1 · measuring item similarity from behaviour</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">User-user vs item-item trade-off</span><span class="note">Part 0 · why item-item scaled; user-user built in b4</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · In item-item CF, two items are similar when...</p>
+      <button class="qopt" type="button">A · They have the same price</button>
+      <button class="qopt" type="button">B · The same shoppers tend to buy both (high cosine between their user columns)</button>
+      <button class="qopt" type="button">C · They share a product category label</button>
+      <p class="qwhy">Item-item CF is behavioural: similarity comes from co-purchase patterns, not features or price. Category labels are content-based (b5), a different family.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">2 · Why did item-to-item scale where user-user did not?</p>
+      <button class="qopt" type="button">A · Fewer, more stable items mean the similarity table is smaller and can be precomputed offline, leaving a fast lookup online</button>
+      <button class="qopt" type="button">B · It uses a bigger neural network</button>
+      <button class="qopt" type="button">C · It needs no data</button>
+      <p class="qwhy">Amazon's 2003 insight: item relationships change slowly and items are fewer than users, so you compute similarity offline and just look it up per request.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">3 · In the live recommender, why does popularity score 0% for this shopper?</p>
+      <button class="qopt" type="button">A · Popularity is broken</button>
+      <button class="qopt" type="button">B · The catalog is too small</button>
+      <button class="qopt" type="button">C · It recommends the store's overall bestsellers (kitchen gear) and never looks at the fitness shopper at all</button>
+      <p class="qwhy">Popularity ignores the user, so for a fitness shopper it returns the popular kitchen items - none of which are relevant. Personalization is exactly what fixes it.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Builder session 3 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Item-item CF</b><span>items are similar when the same shoppers buy both. Amazon 2003 (Linden, Smith &amp; York).</span></div>
+      <div class="cheat-item"><b>Cosine similarity</b><span>co-purchase count normalized by popularity - rewards real affinity, not just bestsellers.</span></div>
+      <div class="cheat-item"><b>Offline / online split</b><span>precompute the item-item table offline; serve a fast sum-and-lookup per request. The scaling trick.</span></div>
+      <div class="cheat-item"><b>Recommend for a shopper</b><span>sum similarities from their bought items, drop owned items, take top-N.</span></div>
+      <div class="cheat-item"><b>"Also bought" strip</b><span>same table, one item: its top-N most similar. Behaviour-only, no features.</span></div>
+      <div class="cheat-item"><b>Cosine vs co-occurrence</b><span>raw counts favour bestsellers; cosine divides out popularity. Prefer cosine.</span></div>
+      <div class="cheat-item"><b>Popularity = 0% here</b><span>it ignores the user; for a fitness shopper it returns kitchen bestsellers. Personalization fixes it.</span></div>
+      <div class="cheat-item"><b>Next session</b><span>b4 - user-user CF: find shoppers like you and borrow their tastes.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Builder session 3 of 10 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="b2-basket-analysis.html">← Previous: Basket analysis &amp; association rules</a> &nbsp;·&nbsp; <a href="b4-user-to-user-cf.html">Next: Customer-to-customer (user-user) CF →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/recsys-live.js?v=1"></script>
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

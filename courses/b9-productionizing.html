@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder session 9 · Productionizing - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Builder session 9 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Builder track · Session 9 of 10</div>
+    <h1>Productionizing: <span class="accent">from a trained model to recs in the app</span></h1>
+    <p class="sub">A great model on your laptop ships zero value. This session is the handoff: the two-stage serving pattern (retrieve candidates, then rank), when to precompute in batch versus score live, the feature store that keeps offline and online features identical, the latency budget, and the artifact-plus-contract you pass to ML engineering. Then the part that actually earns the money - the front-end revamp that surfaces recs as "Because you bought X" rails and ranked slots on home, product, and cart. A brilliant model behind a bad UI still ships nothing.</p>
+    <div class="chip-row">
+      <span class="chip level">🟠 Builder track</span>
+      <span class="chip audience">Practitioners: analysts · data scientists · engineers</span>
+      <span class="chip audience">Python 3.10+ · a notebook</span>
+      <span class="chip time">Serving + UI</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-20 · Serving patterns + feature store</span>
+      <span class="a3" style="flex:5">20-42 · Build-along: precompute + API + rail</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>The model is trained. Now what?</h2>
+    </div>
+    <p class="lede">In b8 you evaluated a model and it beat the baseline. That is not the finish line - it is the start of the hardest handoff in recsys. The data scientist hands ML engineering a model artifact and a contract; ML engineering decides how to serve it inside a latency budget; and engineering rebuilds the front-end so the recommendations actually appear where shoppers look. This session walks Kirana's model out of the notebook and onto the product page. We teach the widely used industry patterns - two-stage serving, batch precompute, feature stores - not any one company's proprietary stack.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill peach">★ Run it now (Python)</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      The two-stage retrieve-then-rank mental model, a clear rule for batch versus real-time serving, Kirana's recs precomputed into a key-value store with an O(1) <code>serve(user)</code> lookup, a FastAPI endpoint that is the contract the front-end consumes, and the front-end rail sketch that turns a model into a "Because you bought X" strip on the page.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: TWO-STAGE SERVING ============ -->
+  <section class="section" id="two-stage">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · industry serving practice</span>
+      <h2>The two-stage serving pattern <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">You cannot score a million items for every request. So production recsys splits serving into two stages: cheaply <strong>retrieve</strong> a few hundred plausible candidates, then <strong>rank</strong> only those with the expensive model. Candidate generation trades precision for speed; ranking trades speed for precision. Together they fit the budget.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two-stage serving: interactions feed candidate generation (retrieval), which feeds ranking, which fills the recommendation rail in the app">
+        <style>
+          .b9sH { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .b9sX { font: 400 11.5px Inter, sans-serif; fill: #DCE6FB; }
+          .b9sI { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .b9sXi { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .b9sN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text class="b9sI" x="24" y="30">From raw behaviour to a recommendation on screen</text>
+        <rect x="24" y="52" width="168" height="86" rx="12" fill="#1E3A8A"/>
+        <text class="b9sH" x="44" y="90">Interactions</text>
+        <text class="b9sX" x="44" y="110">clicks, buys,</text>
+        <text class="b9sX" x="44" y="126">watches, carts</text>
+        <rect x="232" y="52" width="196" height="86" rx="12" fill="#2563EB"/>
+        <text class="b9sH" x="252" y="90">Candidate gen</text>
+        <text class="b9sX" x="252" y="110">retrieve ~100s of items</text>
+        <text class="b9sX" x="252" y="126">from a huge catalog, fast</text>
+        <rect x="468" y="52" width="160" height="86" rx="12" fill="#60A5FA"/>
+        <text class="b9sI" x="488" y="90">Ranking</text>
+        <text class="b9sXi" x="488" y="110">score + order</text>
+        <text class="b9sXi" x="488" y="126">the shortlist well</text>
+        <rect x="668" y="52" width="188" height="86" rx="12" fill="#BFDBFE"/>
+        <text class="b9sI" x="688" y="90">Rec rail in app</text>
+        <text class="b9sXi" x="688" y="110">the strip the</text>
+        <text class="b9sXi" x="688" y="126">shopper actually sees</text>
+        <line x1="194" y1="95" x2="228" y2="95" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="228,90 238,95 228,100" fill="#C7D2E4"/>
+        <line x1="430" y1="95" x2="464" y2="95" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="464,90 474,95 464,100" fill="#C7D2E4"/>
+        <line x1="630" y1="95" x2="664" y2="95" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="664,90 674,95 664,100" fill="#C7D2E4"/>
+        <rect x="232" y="162" width="396" height="26" rx="8" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b9sXi" x="252" y="179">the two-stage core: retrieve cheap, then rank the shortlist</text>
+        <rect x="24" y="204" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b9sN" x="48" y="216">A perfect ranker is useless if the rail never renders. The last box is where value is realized.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - two-stage serving, from interactions to the rail on the page</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Why two stages, not one<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Scoring every item with the heavy model per request would blow the latency budget many times over. The split fixes that:</p>
+        <ul>
+          <li><strong>Candidate generation (retrieval):</strong> a cheap method - co-occurrence lookups, an ANN search over embeddings, or "also bought" from b3 - narrows millions of items to a few hundred in milliseconds.</li>
+          <li><strong>Ranking:</strong> the expensive model (matrix factorization from b6, or a deep ranker from b7) now scores only that shortlist, so it can afford rich features.</li>
+          <li><strong>The payoff:</strong> the costly model touches hundreds of items, not millions. This is the pattern behind most large-scale recommenders; we teach the shape, not any one firm's internals.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>Retrieve then rank is near-universal.</strong> Whether the surface is a streaming homepage or a marketplace product page, the published pattern is the same two stages - a fast retriever proposes, a precise ranker disposes. Kirana does not need billion-item retrieval, but adopting the shape now means the design scales when the catalog does.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: OFFLINE / ONLINE + FEATURE STORE ============ -->
+  <section class="section" id="offline-online">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · batch vs real-time, the feature store, the handoff</span>
+      <h2>Train offline, serve online - and keep them consistent <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">Training is heavy and periodic; serving is light and constant. The art is deciding what to precompute in a nightly batch versus what to score live per request - and making sure a feature means the exact same thing in both places.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Offline training precomputes recs into a store; online serving reads features from the same feature store inside a latency budget; the feature store bridges both">
+        <style>
+          .b9oH { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .b9oX { font: 400 11.5px Inter, sans-serif; fill: #DCE6FB; }
+          .b9oI { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .b9oXi { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .b9oK { font: 700 11.5px Inter, sans-serif; fill: #2563EB; }
+          .b9oN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text class="b9oI" x="24" y="28">Two clocks: a slow training loop and a fast serving loop, one shared feature source</text>
+        <text class="b9oK" x="24" y="52">OFFLINE - scheduled batch</text>
+        <rect x="24" y="60" width="180" height="58" rx="11" fill="#1E3A8A"/>
+        <text class="b9oH" x="44" y="86">Train model</text>
+        <text class="b9oX" x="44" y="104">learn weights offline</text>
+        <rect x="250" y="60" width="260" height="58" rx="11" fill="#2563EB"/>
+        <text class="b9oH" x="270" y="86">Batch precompute recs</text>
+        <text class="b9oX" x="270" y="104">top-N for every known user</text>
+        <line x1="206" y1="89" x2="246" y2="89" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="246,84 256,89 246,94" fill="#C7D2E4"/>
+        <rect x="24" y="136" width="832" height="46" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b9oI" x="44" y="164">Feature store - one definition of each feature, used by both training and serving</text>
+        <line x1="380" y1="118" x2="380" y2="134" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="375,134 380,144 385,134" fill="#C7D2E4"/>
+        <text class="b9oK" x="24" y="204">ONLINE - per request, on the latency budget</text>
+        <rect x="24" y="212" width="160" height="58" rx="11" fill="#BFDBFE"/>
+        <text class="b9oI" x="44" y="238">Request</text>
+        <text class="b9oXi" x="44" y="256">GET /recs/u42</text>
+        <rect x="220" y="212" width="180" height="58" rx="11" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b9oI" x="240" y="238">Read features</text>
+        <text class="b9oXi" x="240" y="256">from the store</text>
+        <rect x="436" y="212" width="150" height="58" rx="11" fill="#60A5FA"/>
+        <text class="b9oI" x="456" y="238">Rank</text>
+        <text class="b9oXi" x="456" y="256">score + order</text>
+        <rect x="622" y="212" width="234" height="58" rx="11" fill="#2563EB"/>
+        <text class="b9oH" x="642" y="238">Respond</text>
+        <text class="b9oX" x="642" y="256">recs as JSON to the app</text>
+        <line x1="310" y1="182" x2="310" y2="210" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="305,210 310,220 315,210" fill="#C7D2E4"/>
+        <line x1="184" y1="241" x2="216" y2="241" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="216,236 226,241 216,246" fill="#C7D2E4"/>
+        <line x1="400" y1="241" x2="432" y2="241" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="432,236 442,241 432,246" fill="#C7D2E4"/>
+        <line x1="586" y1="241" x2="618" y2="241" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="618,236 628,241 618,246" fill="#C7D2E4"/>
+        <rect x="24" y="292" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b9oN" x="48" y="304">Latency budget: retrieve + rank + serialize - the whole online path in roughly 100 ms.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - offline train, online serve, one feature store bridging both</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Batch precompute vs real-time scoring - when each<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Batch precompute:</strong> compute top-N for every user nightly, write to a key-value store, serve by lookup. Cheapest and fastest to serve; recs are as fresh as the last batch. Perfect for stable taste and known users - Kirana's default.</li>
+          <li><strong>Real-time scoring:</strong> compute recs per request. Needed for fast-changing context (what you clicked one minute ago), brand-new users, and session-based intent - at the cost of live compute in the latency budget.</li>
+          <li><strong>Common hybrid:</strong> batch-retrieve candidates offline, rank live with a few fresh signals. Start batch-only; add real-time only where freshness clearly pays.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>The DS to ML-engineering handoff: artifact + contract<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The handoff is not "here is my notebook". It is two concrete things:</p>
+        <ul>
+          <li><strong>The model artifact:</strong> a versioned, serialized model (a pickle, an ONNX file, or a precomputed rec table) plus the exact feature transforms it expects - so serving reproduces training precisely.</li>
+          <li><strong>The contract:</strong> the API shape both sides agree on - the request (a user id), the response schema (a ranked list of item ids plus a strategy tag), latency and fallback rules. Freeze it early so the front-end can build against it in parallel.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>Train-serve skew is the classic bug</strong>
+          If a feature is computed one way in the training notebook and another way in the serving code, the live model quietly underperforms its offline scores. A shared feature store - one definition consumed by both - is the standard fix.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: THE UI REVAMP ============ -->
+  <section class="section" id="ui-revamp">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · where recs earn money</span>
+      <h2>The engineering UI revamp - surfacing the recs <span class="tag concept">4 min live</span></h2>
+    </div>
+    <p class="lede">The model outputs a ranked list. Value appears only when the front-end renders it where shoppers look. This is engineering's job, and it is not an afterthought: the same recs in a prominent "Because you bought X" rail versus buried below the fold produce wildly different revenue.</p>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Where recs get surfaced across the app<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Home page rails:</strong> ranked slots like "Recommended for you" and "Because you bought Yoga Mat" - the personalized shelf the ranking model fills.</li>
+          <li><strong>Product page (PDP):</strong> "Customers who bought this also bought" - the item-item strip from b3, right under the buy button.</li>
+          <li><strong>Cart and checkout:</strong> complementary cross-sell - "add a Water Bottle with those Dumbbells" - the highest-intent moment in the funnel.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>A great model with a bad UI ships no value.</strong> Netflix has described the homepage as almost entirely made of personalized rows - the recommendations <em>are</em> the interface, not a widget bolted on (Netflix TechBlog). The lesson for Kirana: design the rail slots and their copy alongside the model, and A/B test placement, not just the algorithm. Two teams, one surface.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO 1 ============ -->
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Demo 1 of 2</span>
+      <h2>Precompute recs and serve by lookup <span class="tag demo">★ 12 min · everyone builds</span></h2>
+    </div>
+    <p class="lede">The batch pattern in code: compute top-N for every user once, write them to a key-value store (a dict standing in for Redis), then serve any user with an O(1) lookup - no model runs at request time.</p>
+
+    <div class="steps">
+      <div class="step"><p>Build Kirana's matrix, then define a simple per-user recommender (any model from b3 to b7 slots in here).</p></div>
+      <div class="step"><p>Loop over every user once and write their top-N into a dict - this is the nightly batch job.</p></div>
+      <div class="step"><p>Serve with a plain dictionary lookup, falling back to popularity for unknown users. That is the whole online cost.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - batch precompute + O(1) serve</span>import pandas as pd, json
+
+# Kirana transactions -&gt; implicit users x items matrix
+tx = pd.DataFrame({
+    "user": ["u1","u1","u2","u2","u3","u3","u3"],
+    "item": ["Yoga Mat","Protein","Yoga Mat","Dumbbells",
+             "Blender","Cookbook","Yoga Mat"],
+})
+mat = (tx.assign(v=1)
+         .pivot_table(index="user", columns="item", values="v",
+                      aggfunc="sum", fill_value=0) &gt; 0).astype(int)
+
+POPULAR = mat.sum(axis=0).sort_values(ascending=False).index.tolist()
+
+def top_n(user, n=3):                       # any model from b3-b7 plugs in here
+    owned = set(mat.columns[mat.loc[user] &gt; 0])
+    return [it for it in POPULAR if it not in owned][:n]
+
+# --- OFFLINE batch job: compute once for every user, write to the store ---
+REC_STORE = {u: top_n(u) for u in mat.index}
+json.dump(REC_STORE, open("recs.json", "w"))   # a dict stands in for Redis
+print(REC_STORE)
+
+# --- ONLINE serve: O(1) lookup, no model runs at request time ---
+def serve(user, n=3):
+    return REC_STORE.get(user, POPULAR[:n])     # unknown user -&gt; popularity
+print(serve("u1"), serve("new_visitor"))</div>
+
+    <div class="callout tip">
+      <strong>Precompute makes serving trivial</strong>
+      All the intelligence ran offline; serving is a dictionary get. This is why batch is the default first move - it is nearly free to serve and impossible to time out. Swap <code>top_n</code> for your best model from b6/b7 and nothing downstream changes.
+    </div>
+  </section>
+
+  <!-- ============ DEMO 2 ============ -->
+  <section class="section" id="demo-2">
+    <div class="section-kicker">
+      <span class="klabel">Demo 2 of 2</span>
+      <h2>The API contract, and the front-end that renders it <span class="tag demo">★ 10 min · build your own</span></h2>
+    </div>
+    <p class="lede">The endpoint is the contract between data and engineering: the front-end sends a user id and gets back a ranked list. Freeze this shape early so both teams build in parallel. Then engineering renders that list as the rec rail.</p>
+
+    <div class="steps">
+      <div class="step"><p>Wrap the precomputed store in a FastAPI endpoint that returns recs as JSON with a strategy tag.</p></div>
+      <div class="step"><p>Agree the response schema - it is the contract; the front-end depends on these exact keys.</p></div>
+      <div class="step"><p>On the front-end, fetch the contract and render the "Because you bought X" rail on home, PDP, and cart.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - the recs API (the contract)</span># api.py  -  run:  uvicorn api:app --reload
+from fastapi import FastAPI
+import json
+
+app = FastAPI()
+REC_STORE = json.load(open("recs.json"))          # batch output from Demo 1
+POPULAR   = ["Yoga Mat", "Protein", "Dumbbells"]  # cold-start fallback
+
+@app.get("/recs/{user}")
+def get_recs(user: str, n: int = 3):
+    recs = REC_STORE.get(user, POPULAR)[:n]
+    # the response schema IS the contract the front-end depends on:
+    return {"user": user, "recs": recs, "strategy": "batch-v1"}
+
+# GET /recs/u1  -&gt;  {"user":"u1","recs":["Dumbbells","Blender","Cookbook"],
+#                    "strategy":"batch-v1"}</div>
+
+    <div class="prompt-box good"><span class="label">★ The front-end (engineering builds this) - render the rec rail</span>// FRONT-END - fetch the contract above, paint the "Because you bought X" rail.
+// The model is worthless until this code puts it on the page.
+async function renderRecRail(user) {
+  const res  = await fetch(`/recs/${user}`);
+  const data = await res.json();                 // { user, recs, strategy }
+
+  const rail = document.querySelector("#home-rail");
+  rail.innerHTML =
+    `&lt;h3&gt;Because you bought Yoga Mat&lt;/h3&gt;` +
+    data.recs.map(name =&gt;
+      `&lt;article class="rec-card"&gt;${name}&lt;/article&gt;`).join("");
+}
+// home page, product page, and cart each mount a rail like this one.
+renderRecRail("u1");</div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>The contract lets teams move in parallel.</strong> Once the response schema is frozen, the front-end builds the rail against a stub while the data scientist keeps improving the model behind the same endpoint - swapping <code>batch-v1</code> for <code>rank-v2</code> without the UI changing a line. That decoupling is the whole point of shipping a contract, not a notebook.</p>
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 30-45 min total</span></h2>
+    </div>
+    <ul>
+      <li>Precompute top-N for every user in your matrix, write to a JSON store, and serve two users plus one unknown visitor by lookup.</li>
+      <li>Stand up the FastAPI endpoint locally and hit <code>/recs/&lt;user&gt;</code> in the browser - confirm the JSON matches your agreed schema.</li>
+      <li>Write the response contract as a one-paragraph spec (request, response keys, latency target, fallback). This is what you would hand ML engineering.</li>
+      <li>Decide for your own product: which recs should be batch precomputed and which need real-time scoring? Justify each in one line.</li>
+      <li>Sketch the three rail placements (home, PDP, cart) and their copy. Which one would you A/B test first?</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">Taught from widely adopted serving practice and the published industry framing. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Two-stage serving, batch vs real-time, feature stores (industry MLOps practice)</span><span class="note">Parts 1-2 + demos · retrieve-then-rank, precompute, train-serve consistency</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Amazon item-to-item CF (Linden, Smith &amp; York 2003)</span><span class="note">Part 2 · the offline-precompute / online-lookup split, applied</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Personalized-homepage framing (Netflix TechBlog)</span><span class="note">Part 3 · recs as the interface; the UI is where value is realized</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · Why do production recommenders serve in two stages?</p>
+      <button class="qopt" type="button">A · Ranking is cheaper than retrieval, so it runs first</button>
+      <button class="qopt" type="button">B · Cheap retrieval narrows millions of items to a few hundred, then the expensive model ranks only that shortlist - so it fits the latency budget</button>
+      <button class="qopt" type="button">C · One stage is for explicit feedback, the other for implicit</button>
+      <p class="qwhy">Candidate generation trades precision for speed; ranking trades speed for precision. The costly model touches hundreds of items, not millions.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · When is batch precompute the right serving choice?</p>
+      <button class="qopt" type="button">A · When context changes second to second and you need session intent</button>
+      <button class="qopt" type="button">B · Never - real-time is always better</button>
+      <button class="qopt" type="button">C · When users are known and taste is stable: compute top-N nightly, write to a key-value store, serve by O(1) lookup</button>
+      <p class="qwhy">Batch is nearly free to serve and cannot time out. Reach for real-time only where freshness (fast-changing context, brand-new users) clearly pays.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · What does the data scientist actually hand ML engineering?</p>
+      <button class="qopt" type="button">A · A versioned model artifact plus a contract - the API request/response schema, latency target, and fallback</button>
+      <button class="qopt" type="button">B · The training notebook, as is</button>
+      <button class="qopt" type="button">C · Only the accuracy metric from b8</button>
+      <p class="qwhy">The artifact reproduces training exactly (a shared feature store prevents train-serve skew); the contract lets the front-end build in parallel against a frozen schema.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Builder session 9 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Two-stage serving</b><span>retrieve ~100s of candidates cheaply, then rank that shortlist with the heavy model. Fits the latency budget.</span></div>
+      <div class="cheat-item"><b>Batch precompute</b><span>compute top-N nightly, write to a key-value store, serve by O(1) lookup. The default: nearly free, cannot time out.</span></div>
+      <div class="cheat-item"><b>Real-time scoring</b><span>score per request. Only where freshness pays: fast context, new users, session intent.</span></div>
+      <div class="cheat-item"><b>Feature store</b><span>one definition of each feature for training AND serving - the standard fix for train-serve skew.</span></div>
+      <div class="cheat-item"><b>Latency budget</b><span>retrieve + rank + serialize, whole online path in roughly 100 ms. Budget it before you build.</span></div>
+      <div class="cheat-item"><b>The handoff</b><span>DS hands ML eng an artifact (versioned model + transforms) and a contract (API schema + fallback).</span></div>
+      <div class="cheat-item"><b>The UI revamp</b><span>rails on home / PDP / cart. A great model with a bad UI ships no value - recs are the interface.</span></div>
+      <div class="cheat-item"><b>Next session</b><span>b10 - monitoring &amp; iteration: keep it healthy, catch drift, retrain, and close the loop.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Builder session 9 of 10 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="b10-monitoring-iteration.html">Next: Monitoring &amp; iteration →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

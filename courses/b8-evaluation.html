@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder session 8 · Evaluation - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Builder session 8 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Builder track · Session 8 of 10</div>
+    <h1>Evaluation: <span class="accent">offline metrics, honestly</span></h1>
+    <p class="sub">You have built six recommenders on Kirana. Which one is actually better? This session implements the ranking metrics that answer that - precision@k, recall@k, NDCG, MAP - from scratch on a held-out set, adds coverage and diversity as guardrails so you do not just optimize accuracy, and settles the split that trips up every beginner: for recsys you split by time, never at random. Offline metrics pick your candidates; the online A/B test decides the truth.</p>
+    <div class="chip-row">
+      <span class="chip level">🟠 Builder track</span>
+      <span class="chip audience">Practitioners: analysts · data scientists · engineers</span>
+      <span class="chip audience">Python 3.10+ · a notebook</span>
+      <span class="chip time">Measure it</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:5">3-22 · The metrics + the time split</span>
+      <span class="a3" style="flex:4">22-42 · Build-along: metrics + baseline test</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Why evaluation is the whole game</h2>
+    </div>
+    <p class="lede">Every algorithm in this track claims to recommend well. Evaluation is how you stop guessing and start measuring. A recommender outputs a <strong>ranked list</strong>, so its metrics are ranking metrics: did the good items land near the top? Tonight we implement precision@k, recall@k, NDCG, and MAP by hand - no library magic - so you know exactly what each number means, then add guardrails so a model that is accurate but repetitive does not slip through. The honest punchline: offline metrics narrow the field, but only an online A/B test on real users tells you the truth.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill peach">★ Run it now (Python)</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      Working from-scratch implementations of precision@k, recall@k, and NDCG@k on a ranked list; a clear grasp of MAP, coverage, and diversity as guardrails; the time-based train/test split that avoids leakage in recsys; and a head-to-head test showing personalization beat the popularity baseline on precision@k - exactly what the b3 live recommender's meter was showing you.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: THE METRICS ============ -->
+  <section class="section" id="metrics">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers the evaluation canon</span>
+      <h2>The ranking metrics, defined <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">You hold out a set of items you know the user actually liked (the <strong>relevant set</strong>), the model produces a ranked list, and every metric asks a slightly different question about how the two overlap. Here are the four that matter, plain.</p>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Precision, recall, NDCG, MAP - each in one line<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <table class="clean">
+          <thead><tr><th>Metric</th><th>The question it asks</th><th>When you reach for it</th></tr></thead>
+          <tbody>
+            <tr><td>Precision@k</td><td>Of the top k I showed, what fraction were relevant?</td><td>Screen real estate is scarce - the top slots must earn their place</td></tr>
+            <tr><td>Recall@k</td><td>Of all relevant items, what fraction did I surface in the top k?</td><td>Coverage of what the user wanted - candidate generation</td></tr>
+            <tr><td>NDCG@k</td><td>Precision, but rewards putting relevant items <em>higher</em></td><td>Rank order matters, not just presence</td></tr>
+            <tr><td>MAP</td><td>Average precision across users - one number for the system</td><td>Comparing whole models head to head</td></tr>
+          </tbody>
+        </table>
+        <p>Precision and recall are the pair; NDCG adds position sensitivity (a hit at rank 1 is worth more than a hit at rank 5); MAP rolls per-user average precision into a single leaderboard number.</p>
+      </div>
+    </details>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The metric ladder: offline ranking metrics like precision at k and NDCG feed online metrics like CTR and conversion, which feed business outcomes like revenue">
+        <style>
+          .b8lT { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+          .b8lX { font: 400 11.5px Inter, sans-serif; fill: #DCE6FB; }
+          .b8lI { font: 700 14px Inter, sans-serif; fill: #111634; }
+          .b8lXi { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .b8lN { font: 600 13px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <rect x="24" y="48" width="250" height="96" rx="14" fill="#1E3A8A"/>
+        <text class="b8lT" x="46" y="82">Offline</text>
+        <text class="b8lX" x="46" y="104">precision@k · recall@k</text>
+        <text class="b8lX" x="46" y="124">NDCG · MAP</text>
+        <rect x="316" y="48" width="250" height="96" rx="14" fill="#2563EB"/>
+        <text class="b8lT" x="338" y="82">Online (A/B)</text>
+        <text class="b8lX" x="338" y="104">CTR · conversion</text>
+        <text class="b8lX" x="338" y="124">add-to-cart · watch time</text>
+        <rect x="608" y="48" width="248" height="96" rx="14" fill="#60A5FA"/>
+        <text class="b8lI" x="630" y="82">Business</text>
+        <text class="b8lXi" x="630" y="104">revenue · retention</text>
+        <text class="b8lXi" x="630" y="124">lifetime value</text>
+        <path d="M274 96 L316 96" stroke="#C7D2E4" stroke-width="3" marker-end="url(#b8a)"/>
+        <path d="M566 96 L608 96" stroke="#C7D2E4" stroke-width="3" marker-end="url(#b8a)"/>
+        <defs><marker id="b8a" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#C7D2E4"/></marker></defs>
+        <rect x="24" y="196" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b8lN" x="48" y="208">Offline picks candidates cheaply; only the online A/B test proves real users behave better.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the metric ladder: offline picks, online proves, business decides</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Guardrails: coverage and diversity<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Accuracy alone is a trap. A model can score well on precision by recommending the same few safe items to everyone - and quietly build a filter bubble. Two guardrails keep it honest:</p>
+        <ul>
+          <li><strong>Coverage</strong> - what fraction of the whole catalog ever gets recommended? Low coverage means most items are invisible, starving the long tail.</li>
+          <li><strong>Diversity</strong> - within one user's list, how different are the items from each other? All-yoga-gear is accurate but narrow; a little breadth aids discovery.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>Report accuracy and guardrails together</strong>
+          The honest scorecard is never a single number. Precision@k next to coverage and diversity is what stops you from shipping a technically-accurate recommender that shows everyone the same bestsellers - the popularity trap you have been beating since b1.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE TIME SPLIT ============ -->
+  <section class="section" id="split">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · the split that avoids leakage</span>
+      <h2>Split by time, never at random <span class="tag concept">4 min live</span></h2>
+    </div>
+    <p class="lede">In most machine learning you shuffle and split randomly. For recommenders that is a bug. A random split can put a user's <em>future</em> purchase in the training set and their <em>past</em> in the test set - the model peeks at the answer. You must split by <strong>time</strong>: train on the past, test on the future, exactly as production will run.</p>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Why random splitting leaks - and what to do<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>The leak:</strong> recommendation is inherently temporal - you predict what a user does <em>next</em>. A random split scrambles time, letting tomorrow inform yesterday. Your offline score inflates and never survives contact with real traffic.</li>
+          <li><strong>The fix:</strong> pick a cutoff timestamp. Everything before it is training; everything after is the held-out relevant set. Each user's earlier interactions train; their later interactions are what you try to predict.</li>
+          <li><strong>The reward:</strong> the offline number now means something - it estimates how the model would have done on the future it never saw. That is the only offline signal worth trusting before an A/B test.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>The classic false win.</strong> A team reports a stellar offline precision, ships it, and the A/B test is flat or negative. Nine times out of ten the culprit is a random split leaking the future into training. Time-based splitting is the single most important habit that makes offline evaluation trustworthy.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO 1 ============ -->
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Demo 1 of 2</span>
+      <h2>Implement the metrics from scratch <span class="tag demo">★ 12 min · everyone builds</span></h2>
+    </div>
+    <p class="lede">Write precision@k, recall@k, and NDCG@k yourself on a ranked list versus a relevant set - the same YOU-versus-RELEVANT idea the b3 live recommender scored. No library; just the definitions, so the numbers are never a mystery.</p>
+
+    <div class="steps">
+      <div class="step"><p>Represent a recommendation as an ordered list of item ids, and the truth as a set of relevant items.</p></div>
+      <div class="step"><p>Precision@k = hits in the top k / k. Recall@k = hits in the top k / total relevant.</p></div>
+      <div class="step"><p>NDCG@k = your list's discounted gain / the best possible discounted gain - it rewards ranking hits higher.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - precision@k, recall@k, NDCG@k from scratch</span>import numpy as np
+
+# a ranked recommendation list vs the set the user actually liked (held out)
+ranked   = ["Yoga Mat", "Blender", "Yoga Block", "Cookbook", "Foam Roller"]
+relevant = {"Yoga Mat", "Yoga Block", "Foam Roller"}   # ground truth
+
+def precision_at_k(ranked, relevant, k):
+    topk = ranked[:k]
+    hits = sum(1 for it in topk if it in relevant)
+    return hits / k
+
+def recall_at_k(ranked, relevant, k):
+    topk = ranked[:k]
+    hits = sum(1 for it in topk if it in relevant)
+    return hits / len(relevant)
+
+def ndcg_at_k(ranked, relevant, k):
+    # DCG: 1/log2(rank+1) for each hit; IDCG: the best achievable ordering
+    dcg  = sum(1.0 / np.log2(i + 2) for i, it in enumerate(ranked[:k]) if it in relevant)
+    ideal_hits = min(len(relevant), k)
+    idcg = sum(1.0 / np.log2(i + 2) for i in range(ideal_hits))
+    return dcg / idcg if idcg &gt; 0 else 0.0
+
+for k in (3, 5):
+    print(f"k={k}: precision {precision_at_k(ranked, relevant, k):.2f}  "
+          f"recall {recall_at_k(ranked, relevant, k):.2f}  "
+          f"ndcg {ndcg_at_k(ranked, relevant, k):.2f}")</div>
+
+    <div class="callout tip">
+      <strong>Read the precision@3</strong>
+      Top 3 here are Yoga Mat, Blender, Yoga Block - two of three are relevant, so precision@3 = 0.67. That is the exact quantity the b3 live recommender's meter animated: popularity landed 0%, and a personalized recommender for a fitness shopper climbed toward 100%. You just implemented the meter.
+    </div>
+  </section>
+
+  <!-- ============ DEMO 2 ============ -->
+  <section class="section" id="demo-2">
+    <div class="section-kicker">
+      <span class="klabel">Demo 2 of 2</span>
+      <h2>Time-split Kirana: personalized beats popularity <span class="tag demo">★ 10 min · build your own</span></h2>
+    </div>
+    <p class="lede">Now the head-to-head. Split Kirana's interactions by time, train two recommenders on the past - the popularity baseline from b1 and a simple personalized one - and score both on each user's future purchases. Personalization should win on precision@k, which is the whole reason the course exists.</p>
+
+    <div class="steps">
+      <div class="step"><p>Take timestamped Kirana interactions and cut at a timestamp: earlier = train, later = the held-out relevant set.</p></div>
+      <div class="step"><p>Build two recommenders on the training slice: popularity (top sellers) and a co-occurrence personalized one.</p></div>
+      <div class="step"><p>Score each user's top-k against their future items and average the precision@k across users.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - time split + baseline vs personalized</span>import pandas as pd
+from collections import Counter, defaultdict
+
+# Kirana interactions with timestamps (day index)
+df = pd.DataFrame({
+    "user": ["u1","u1","u1","u2","u2","u2","u3","u3","u3","u1","u2","u3"],
+    "item": ["Yoga Mat","Protein","Blender","Yoga Mat","Yoga Block","Cookbook",
+             "Blender","Cookbook","Whisk","Yoga Block","Protein","Blender"],
+    "day":  [1,1,2,1,2,2,1,1,2,3,3,3],
+})
+
+CUT = 3
+train = df[df.day &lt; CUT]
+test  = df[df.day &gt;= CUT]                       # the future = relevant set
+future = test.groupby("user")["item"].apply(set).to_dict()
+
+# --- popularity baseline: same list for everyone ---
+pop = [it for it, _ in Counter(train.item).most_common()]
+
+# --- personalized: items co-bought with what a user bought in train ---
+co = defaultdict(Counter)
+for _, g in train.groupby("user"):
+    its = list(g.item)
+    for a in its:
+        for b in its:
+            if a != b: co[a][b] += 1
+
+def personalized(user, k=2):
+    seen = set(train[train.user == user].item)
+    scores = Counter()
+    for it in seen:
+        scores.update(co[it])
+    ranked = [it for it, _ in scores.most_common() if it not in seen]
+    return ranked[:k]
+
+def precision_at_k(recs, relevant, k):
+    if not relevant: return None
+    return sum(1 for it in recs[:k] if it in relevant) / k
+
+def mean_p(recommender, k=2):
+    vals = []
+    for u, rel in future.items():
+        recs = pop[:k] if recommender == "pop" else personalized(u, k)
+        p = precision_at_k(recs, rel, k)
+        if p is not None: vals.append(p)
+    return sum(vals) / len(vals) if vals else 0.0
+
+print(f"popularity   precision@2: {mean_p('pop'):.2f}")
+print(f"personalized precision@2: {mean_p('personal'):.2f}")
+print("# time split (train day&lt;3, test day&gt;=3) - personalization should win")</div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Offline picks, online proves.</strong> This is the offline test that earns a model its A/B slot: if it cannot beat popularity on a clean time split, it does not deserve live traffic. But even a winning offline number is a hypothesis - real users, novelty effects, and business context can flip it. That is why b9 and b10 wire up online measurement and monitoring, not just this leaderboard.</p>
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 30-45 min total</span></h2>
+    </div>
+    <ul>
+      <li>Run Demo 1 and hand-check precision@3 and recall@3 on paper against the code - make sure the definitions match your intuition.</li>
+      <li>Add a <code>map_score</code> function (mean of per-user average precision) and rank three of your Kirana recommenders with it.</li>
+      <li>Compute coverage (fraction of the catalog ever recommended) for the popularity baseline versus a personalized model. Note which one buries the long tail.</li>
+      <li>Re-run Demo 2 with a random split instead of the time split and watch the numbers inflate - then explain in one sentence why the time-split number is the trustworthy one.</li>
+      <li>Write the one-line rule you will carry into every recsys eval: split by time, report accuracy with guardrails, and treat offline as a filter before the A/B test.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">Taught from the recommender-systems evaluation canon and standard industry A/B practice. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Evaluation canon - Aggarwal (2016), "Recommender Systems: The Textbook"; Ricci et al. handbook</span><span class="note">Parts 1-2 + Demo 1 · precision@k, recall@k, NDCG, MAP, coverage/diversity</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Time-based train/test split for temporal data (recsys evaluation practice)</span><span class="note">Part 2 + Demo 2 · avoiding future leakage</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Offline vs online (A/B) evaluation - Netflix TechBlog framing, industry practice</span><span class="note">Part 1 · offline filters, online decides; business ties in b9/b10</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · Your top 3 recommendations contain 2 relevant items. What is precision@3?</p>
+      <button class="qopt" type="button">A · 1.00</button>
+      <button class="qopt" type="button">B · 0.50</button>
+      <button class="qopt" type="button">C · 0.67 - two hits out of the three shown</button>
+      <p class="qwhy">Precision@k = hits in the top k / k = 2/3 = 0.67. This is exactly the number the b3 live recommender's meter animated as you switched algorithms.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">2 · Why must recsys use a time-based train/test split, not a random one?</p>
+      <button class="qopt" type="button">A · A random split can leak a user's future into training, inflating the offline score</button>
+      <button class="qopt" type="button">B · Random splits are slower to compute</button>
+      <button class="qopt" type="button">C · Time splits use less memory</button>
+      <p class="qwhy">Recommendation predicts what a user does next, so shuffling time lets tomorrow inform yesterday. Split at a cutoff: past trains, future is the held-out relevant set.</p>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">3 · A model has great precision@k. Is that enough to ship it?</p>
+      <button class="qopt" type="button">A · Yes - precision is the only metric that matters</button>
+      <button class="qopt" type="button">B · No - check coverage/diversity guardrails, then prove it with an online A/B test</button>
+      <button class="qopt" type="button">C · No - only NDCG can decide anything</button>
+      <p class="qwhy">Offline accuracy is a filter, not a verdict. Report guardrails so you do not ship a filter bubble, and let the online A/B test on real users decide the truth.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Builder session 8 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Precision@k</b><span>hits in top k / k. The top slots are scarce - did they earn their place?</span></div>
+      <div class="cheat-item"><b>Recall@k</b><span>hits in top k / total relevant. Did you surface what the user wanted?</span></div>
+      <div class="cheat-item"><b>NDCG@k</b><span>precision that rewards ranking hits higher - your DCG / the ideal DCG.</span></div>
+      <div class="cheat-item"><b>MAP</b><span>mean average precision across users - one leaderboard number for the whole system.</span></div>
+      <div class="cheat-item"><b>Guardrails</b><span>coverage (how much catalog gets shown) + diversity (breadth per list). Report with accuracy, always.</span></div>
+      <div class="cheat-item"><b>Split by time</b><span>past trains, future tests. Random splits leak the future and inflate the score.</span></div>
+      <div class="cheat-item"><b>Offline vs online</b><span>offline filters candidates cheaply; the online A/B test decides the truth.</span></div>
+      <div class="cheat-item"><b>Next session</b><span>b9 - productionizing: batch vs real-time serving, feature store, latency, the UI revamp.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Builder session 8 of 10 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="b9-productionizing.html">Next: Productionizing the recommender →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

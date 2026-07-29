@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leader session 4 · The team + the pipeline - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Leader session 4 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Leader track · Session 4 of 6</div>
+    <h1>The team and the pipeline: <span class="accent">who does what, and the hand-off</span></h1>
+    <p class="sub">A recommender is not one person's model - it is a relay. An analyst finds the patterns, a data scientist trains the model, an ML engineer puts it into production, engineering surfaces it in the app, and the whole team watches it in the wild. Each role hands the next a specific artifact. This session walks that relay in order, gives you a RACI grid you can drop on your own org, and shows exactly where the builder track (b2 through b10) picks up each hand-off.</p>
+    <div class="chip-row">
+      <span class="chip level">🟡 Leader track</span>
+      <span class="chip audience">Leaders: PM · biz · product</span>
+      <span class="chip audience">No code · concepts + decisions</span>
+      <span class="chip time">Session 4 of 6</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:5">3-22 · The relay, role by role</span>
+      <span class="a3" style="flex:4">22-40 · RACI + finding the gap</span>
+      <span class="a4" style="flex:1">40-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>A recommender is a relay, not a hero project</h2>
+    </div>
+    <p class="lede">The single most common way a recommendation project stalls is treating it as "the data scientist's model". In reality the value only lands when five roles hand work cleanly down a chain - and a break at any hand-off kills the outcome. A brilliant model no one productionizes is a notebook. A served model no one surfaces in the app is invisible. This session gives you the map of the relay so you can staff it, sequence it, and spot the missing link before it costs a quarter.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      The five-role relay and the artifact each role hands off, a RACI grid you can map onto your own team tonight, and a clear line from each role to the builder session that does its job in real code - so leaders and practitioners are reading the same map.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: THE RELAY ============ -->
+  <section class="section" id="relay">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · the pipeline as a relay</span>
+      <h2>Five roles, five hand-offs <span class="tag concept">7 min live</span></h2>
+    </div>
+    <p class="lede">Read this left to right. Each box is a role; the chip under it is the artifact it hands to the next role. The whole track (b2-b10) is just this relay, done in code.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The recommender relay: data analyst hands off rules and patterns, data scientist hands off a trained model, ML engineer hands off a served endpoint, engineering hands off rec rails in the app, and the team hands off dashboards and alerts">
+        <style>
+          .a4pT { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .a4pR { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .a4pA { font: 400 11px Inter, sans-serif; fill: #111634; }
+          .a4pM { font: 700 10.5px Inter, sans-serif; fill: #2563EB; }
+          .a4pN { font: 600 13px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text class="a4pT" x="24" y="26">The hand-off chain</text>
+        <!-- role boxes -->
+        <rect x="24" y="44" width="150" height="54" rx="10" fill="#1E3A8A"/><text class="a4pR" x="44" y="76">Data analyst</text>
+        <rect x="194" y="44" width="150" height="54" rx="10" fill="#2563EB"/><text class="a4pR" x="210" y="76">Data scientist</text>
+        <rect x="364" y="44" width="150" height="54" rx="10" fill="#2563EB"/><text class="a4pR" x="378" y="76">ML eng / DevOps</text>
+        <rect x="534" y="44" width="150" height="54" rx="10" fill="#60A5FA"/><text class="a4pR" x="556" y="76">Engineering</text>
+        <rect x="704" y="44" width="150" height="54" rx="10" fill="#60A5FA"/><text class="a4pR" x="726" y="76">Monitoring</text>
+        <!-- arrows -->
+        <line x1="176" y1="71" x2="190" y2="71" stroke="#C7D2E4" stroke-width="2"/><polygon points="190,67 196,71 190,75" fill="#C7D2E4"/>
+        <line x1="346" y1="71" x2="360" y2="71" stroke="#C7D2E4" stroke-width="2"/><polygon points="360,67 366,71 360,75" fill="#C7D2E4"/>
+        <line x1="516" y1="71" x2="530" y2="71" stroke="#C7D2E4" stroke-width="2"/><polygon points="530,67 536,71 530,75" fill="#C7D2E4"/>
+        <line x1="686" y1="71" x2="700" y2="71" stroke="#C7D2E4" stroke-width="2"/><polygon points="700,67 706,71 700,75" fill="#C7D2E4"/>
+        <!-- artifact chips -->
+        <rect x="24" y="112" width="150" height="42" rx="8" fill="#EFF6FF" stroke="#BFDBFE"/><text class="a4pA" x="40" y="138">rules + patterns</text>
+        <rect x="194" y="112" width="150" height="42" rx="8" fill="#EFF6FF" stroke="#BFDBFE"/><text class="a4pA" x="210" y="138">trained model</text>
+        <rect x="364" y="112" width="150" height="42" rx="8" fill="#EFF6FF" stroke="#BFDBFE"/><text class="a4pA" x="380" y="138">served endpoint</text>
+        <rect x="534" y="112" width="150" height="42" rx="8" fill="#EFF6FF" stroke="#BFDBFE"/><text class="a4pA" x="550" y="138">rec rails in the app</text>
+        <rect x="704" y="112" width="150" height="42" rx="8" fill="#EFF6FF" stroke="#BFDBFE"/><text class="a4pA" x="716" y="138">dashboards + alerts</text>
+        <!-- maps-to labels -->
+        <text class="a4pM" x="24" y="176">maps to b2</text>
+        <text class="a4pM" x="194" y="176">maps to b4-b7</text>
+        <text class="a4pM" x="364" y="176">maps to b9</text>
+        <text class="a4pM" x="534" y="176">maps to b9</text>
+        <text class="a4pM" x="704" y="176">maps to b10</text>
+        <rect x="24" y="212" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="a4pN" x="48" y="224">Break any single hand-off and the whole recommendation feature stalls.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the five-role relay and the artifact each role hands to the next</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The relay, role by role<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Data analyst -&gt; rules + patterns.</strong> Runs basket analysis on historical orders - which items sell together, with what support, confidence, and lift. This is the first, cheapest signal and it often ships as simple "bought together" rules before any model exists. <em>(Builder track: b2.)</em></li>
+          <li><strong>Data scientist -&gt; trained model.</strong> Takes the patterns and the interactions matrix and trains and selects a model - collaborative filtering, content-based, matrix factorization, or deep - choosing the one that earns its complexity against the baseline. <em>(b4-b7.)</em></li>
+          <li><strong>ML engineer / DevOps -&gt; served endpoint.</strong> Productionizes the chosen model: serving, latency budgets, batch vs real-time, a feature store so training and serving see the same features. This is where a notebook becomes a service. <em>(b9.)</em></li>
+          <li><strong>Engineering / front-end -&gt; rec rails in the app.</strong> Revamps the UI to actually surface the recommendations - "because you bought", ranked rails, the right slots on the right screens. A great model in an ugly slot converts nothing. <em>(b9.)</em></li>
+          <li><strong>Everyone, led by DS + analytics -&gt; dashboards + alerts.</strong> Monitors the algorithm in the wild - click-through, drift, when to retrain, and the A/B tests that prove it beats what came before. <em>(b10.)</em></li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>The order is a dependency chain, not a preference.</strong> Teams that let the data scientist run ahead of a serving plan end up with a model that scores beautifully offline and never ships. The healthiest recommender teams staff the ML-engineering and front-end hand-offs from day one, so "how will this be served and surfaced?" is answered before the model is even trained.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: RACI ============ -->
+  <section class="section" id="raci">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · who is responsible for what</span>
+      <h2>The RACI grid <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">Same five tasks, mapped to who does and owns each one. R/A means that role does the work and owns the outcome; C means they are consulted. Use it to check your own team has an owner for every row.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="RACI grid mapping five tasks - basket analysis, model training, serving, UI surfacing, monitoring - to four roles: analyst, data scientist, ML engineer or DevOps, and engineering">
+        <style>
+          .a4rT { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .a4rH { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .a4rL { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .a4rC { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .a4rCi { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .a4rN { font: 600 12px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text class="a4rT" x="24" y="26">Tasks x roles</text>
+        <!-- column headers -->
+        <rect x="210" y="42" width="158" height="40" rx="8" fill="#1E3A8A"/><text class="a4rH" x="252" y="67">Analyst</text>
+        <rect x="372" y="42" width="158" height="40" rx="8" fill="#1E3A8A"/><text class="a4rH" x="408" y="67">Data Sci</text>
+        <rect x="534" y="42" width="158" height="40" rx="8" fill="#1E3A8A"/><text class="a4rH" x="566" y="67">ML / DevOps</text>
+        <rect x="696" y="42" width="158" height="40" rx="8" fill="#1E3A8A"/><text class="a4rH" x="722" y="67">Engineering</text>
+
+        <!-- row 1: basket analysis -->
+        <rect x="24" y="90" width="180" height="40" rx="8" fill="#60A5FA"/><text class="a4rL" x="40" y="115">Basket analysis</text>
+        <rect x="210" y="90" width="158" height="40" rx="8" fill="#2563EB"/><text class="a4rC" x="272" y="115">R/A</text>
+        <rect x="372" y="90" width="158" height="40" rx="8" fill="#BFDBFE"/><text class="a4rCi" x="446" y="115">C</text>
+        <rect x="534" y="90" width="158" height="40" rx="8" fill="#EFF6FF"/>
+        <rect x="696" y="90" width="158" height="40" rx="8" fill="#EFF6FF"/>
+
+        <!-- row 2: model training -->
+        <rect x="24" y="138" width="180" height="40" rx="8" fill="#60A5FA"/><text class="a4rL" x="40" y="163">Model training</text>
+        <rect x="210" y="138" width="158" height="40" rx="8" fill="#BFDBFE"/><text class="a4rCi" x="284" y="163">C</text>
+        <rect x="372" y="138" width="158" height="40" rx="8" fill="#2563EB"/><text class="a4rC" x="434" y="163">R/A</text>
+        <rect x="534" y="138" width="158" height="40" rx="8" fill="#BFDBFE"/><text class="a4rCi" x="608" y="163">C</text>
+        <rect x="696" y="138" width="158" height="40" rx="8" fill="#EFF6FF"/>
+
+        <!-- row 3: serving -->
+        <rect x="24" y="186" width="180" height="40" rx="8" fill="#60A5FA"/><text class="a4rL" x="40" y="211">Serving</text>
+        <rect x="210" y="186" width="158" height="40" rx="8" fill="#EFF6FF"/>
+        <rect x="372" y="186" width="158" height="40" rx="8" fill="#BFDBFE"/><text class="a4rCi" x="446" y="211">C</text>
+        <rect x="534" y="186" width="158" height="40" rx="8" fill="#2563EB"/><text class="a4rC" x="596" y="211">R/A</text>
+        <rect x="696" y="186" width="158" height="40" rx="8" fill="#BFDBFE"/><text class="a4rCi" x="770" y="211">C</text>
+
+        <!-- row 4: UI surfacing -->
+        <rect x="24" y="234" width="180" height="40" rx="8" fill="#60A5FA"/><text class="a4rL" x="40" y="259">UI surfacing</text>
+        <rect x="210" y="234" width="158" height="40" rx="8" fill="#EFF6FF"/>
+        <rect x="372" y="234" width="158" height="40" rx="8" fill="#BFDBFE"/><text class="a4rCi" x="446" y="259">C</text>
+        <rect x="534" y="234" width="158" height="40" rx="8" fill="#BFDBFE"/><text class="a4rCi" x="608" y="259">C</text>
+        <rect x="696" y="234" width="158" height="40" rx="8" fill="#2563EB"/><text class="a4rC" x="758" y="259">R/A</text>
+
+        <!-- row 5: monitoring -->
+        <rect x="24" y="282" width="180" height="40" rx="8" fill="#60A5FA"/><text class="a4rL" x="40" y="307">Monitoring</text>
+        <rect x="210" y="282" width="158" height="40" rx="8" fill="#BFDBFE"/><text class="a4rCi" x="284" y="307">C</text>
+        <rect x="372" y="282" width="158" height="40" rx="8" fill="#2563EB"/><text class="a4rC" x="434" y="307">R/A</text>
+        <rect x="534" y="282" width="158" height="40" rx="8" fill="#BFDBFE"/><text class="a4rCi" x="608" y="307">C</text>
+        <rect x="696" y="282" width="158" height="40" rx="8" fill="#BFDBFE"/><text class="a4rCi" x="770" y="307">C</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the RACI grid: R/A does and owns the task, C is consulted</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Reading the grid, and finding your gap<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The grid is a diagnostic. Two failure patterns show up instantly when you fill it in for your own team:</p>
+        <ul>
+          <li><strong>A row with no R/A.</strong> Nobody owns serving, or nobody owns the UI. This is where most projects quietly die - the model exists but never reaches a customer.</li>
+          <li><strong>One role holding every R/A.</strong> The data scientist is doing analysis, training, serving, and the front-end. That is not a team, it is a bus-factor of one, and it will not scale past a demo.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>Monitoring is everyone's job, led by someone</strong>
+          The last row is deliberately shared - analysts, data scientists, and engineers all read the dashboards - but it still needs a single accountable owner (usually DS + analytics) or "everyone watches" becomes "no one watches". Name that owner.
+        </div>
+        <p>The builder track maps straight onto these rows: b2 is basket analysis, b4-b7 are model training, b9 is serving and the UI revamp, and b10 is monitoring. When your practitioners are in the builder sessions, they are literally doing the columns of this grid.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ WALK-THROUGH ============ -->
+  <section class="section" id="walk">
+    <div class="section-kicker">
+      <span class="klabel">Walk-through · think it through</span>
+      <h2>Follow one recommendation from log to dashboard <span class="tag demo">◐ 8 min · no code</span></h2>
+    </div>
+    <p class="lede">A thought exercise: trace a single "customers who bought this also bought" rec through all five hands, naming who holds it at each step.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>Analyst.</strong> Notices in the order history that yoga mats and resistance bands sell together with high lift. Hands off a "bought together" rule.</p></div>
+      <div class="step"><p><strong>Data scientist.</strong> Turns that and thousands of other co-purchases into a trained model that ranks items per user, and confirms it beats the popularity baseline. Hands off the model.</p></div>
+      <div class="step"><p><strong>ML engineer / DevOps.</strong> Wraps the model in an endpoint that returns recommendations fast enough for a page load, backed by a feature store. Hands off the served endpoint.</p></div>
+      <div class="step"><p><strong>Engineering.</strong> Adds a "because you bought your yoga mat" rail to the product page in the right slot. Hands off the live rec rail.</p></div>
+      <div class="step"><p><strong>The team.</strong> Watches click-through and conversion on that rail, catches drift when the range changes for the season, and decides when to retrain. Hands off the dashboard - and the loop begins again.</p></div>
+    </div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Every hand-off is a place to lose the plot.</strong> The rule can be right and the model wrong; the model can be right and too slow to serve; the endpoint can be perfect and the rail buried three scrolls down; the rail can convert and no one is watching when it starts to drift. Leaders add value by protecting the hand-offs, not by owning any single box.</p>
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Map your own org - this week <span class="tag exercise">◐ 20-30 min total</span></h2>
+    </div>
+    <ul>
+      <li>Draw the five-role relay for your team. For each box, write the <strong>name of the person</strong> who plays that role today.</li>
+      <li>Fill in the RACI grid: put an R/A in one cell per row, and Cs where a role is consulted.</li>
+      <li>Find the gap: which row has <strong>no owner</strong>, or which person is carrying more than two R/A boxes? That is your risk.</li>
+      <li>Write one sentence on the hand-off you are most worried about - model to serving, or serving to UI - and what would de-risk it.</li>
+      <li>Optional: share the filled grid with your practitioners heading into the builder track so leaders and builders are working from the same map.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">This session teaches the standard recommender-team operating model - the roles, hand-offs, and RACI drawn from common industry practice. It covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Recommender team + pipeline operating model (industry practice)</span><span class="note">Part 1 · analyst -&gt; data scientist -&gt; ML eng / DevOps -&gt; engineering -&gt; monitoring, with hand-off artifacts</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">RACI as an R&amp;R diagnostic for data / ML teams</span><span class="note">Part 2 · owning every task, avoiding the single-owner and no-owner traps</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Map to the builder track (b2, b4-b7, b9, b10)</span><span class="note">Throughout · each role's job is a real-code session later in the course</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · What does the data analyst hand off at the start of the relay?</p>
+      <button class="qopt" type="button">A · A served production endpoint</button>
+      <button class="qopt" type="button">B · Rules and patterns from basket analysis - what sells together, with support, confidence, and lift</button>
+      <button class="qopt" type="button">C · The final dashboard</button>
+      <p class="qwhy">The analyst runs basket analysis on historical orders and hands off "bought together" rules and patterns - the first, cheapest signal. That is builder session b2.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · A model scores beautifully offline but never reaches a customer. Which hand-offs most likely broke?</p>
+      <button class="qopt" type="button">A · Analyst to data scientist only</button>
+      <button class="qopt" type="button">B · Nothing broke; that is normal</button>
+      <button class="qopt" type="button">C · Model to serving (ML eng / DevOps) and serving to UI (engineering) - the model was never productionized or surfaced</button>
+      <p class="qwhy">A trained model is a notebook until it is served and surfaced. Staff the ML-engineering and front-end hand-offs early so "how is this served and shown?" is answered before training.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · Why does monitoring still need a single accountable owner if "everyone" watches?</p>
+      <button class="qopt" type="button">A · Because "everyone watches" quietly becomes "no one watches" without a named owner (usually DS + analytics)</button>
+      <button class="qopt" type="button">B · Because only one person is allowed to see the dashboards</button>
+      <button class="qopt" type="button">C · Because monitoring is not actually important</button>
+      <p class="qwhy">Monitoring is shared work, but a row with no R/A owner is where projects die. Name the accountable owner even when the whole team reads the dashboards.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Leader session 4 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>It is a relay</b><span>five roles hand work down a chain; a break at any hand-off stalls the whole feature.</span></div>
+      <div class="cheat-item"><b>Analyst -&gt; rules</b><span>basket analysis: support, confidence, lift. First cheap signal. (b2)</span></div>
+      <div class="cheat-item"><b>Data scientist -&gt; model</b><span>trains + selects CF, content, matrix factorization, or deep. (b4-b7)</span></div>
+      <div class="cheat-item"><b>ML eng / DevOps -&gt; endpoint</b><span>serving, latency, batch vs real-time, feature store. Notebook becomes a service. (b9)</span></div>
+      <div class="cheat-item"><b>Engineering -&gt; rec rails</b><span>surface it: "because you bought", ranked rails, the right slots. (b9)</span></div>
+      <div class="cheat-item"><b>Everyone -&gt; monitoring</b><span>CTR, drift, retraining, A/B. Led by DS + analytics. (b10)</span></div>
+      <div class="cheat-item"><b>RACI check</b><span>one R/A per row; no empty rows; no one holding every box.</span></div>
+      <div class="cheat-item"><b>Next session</b><span>a5 - measuring recommendations: CTR, conversion, A/B, and the feedback loop.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Leader session 4 of 6 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="a5-measuring-recs.html">Next: Measuring recommendations →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

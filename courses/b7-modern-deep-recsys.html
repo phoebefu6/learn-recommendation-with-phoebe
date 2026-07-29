@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder session 7 · Modern &amp; deep recsys - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Builder session 7 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Builder track · Session 7 of 10</div>
+    <h1>Modern &amp; deep recsys: <span class="accent">embeddings, two towers, and attention</span></h1>
+    <p class="sub">This session is a map, not a from-scratch build. The industrial recommenders behind Alibaba and its AliExpress/Lazada family are deep neural networks trained on billions of interactions - far beyond a 45-minute notebook. So tonight we survey the published, named cores - embeddings, two-tower retrieval, and interest models like DIN and MIND - and run small illustrative sketches that convey the intuition. Training a real deep model belongs in a dedicated ML course, and we say so.</p>
+    <div class="chip-row">
+      <span class="chip level">🔴 Builder track</span>
+      <span class="chip audience">Practitioners: analysts · data scientists · engineers</span>
+      <span class="chip audience">Python 3.10+ · a notebook</span>
+      <span class="chip time">Survey + sketches</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:5">3-22 · Embeddings, two-tower, interest models</span>
+      <span class="a3" style="flex:4">22-42 · Sketches: scoring + attention</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Where the field goes next</h2>
+    </div>
+    <p class="lede">You have built the classic families on Kirana: co-occurrence, item-item and user-user CF, content-based, and matrix factorization. Modern industrial recsys keeps the same goal - fill the blanks in the interactions matrix - but replaces hand-built similarity with <strong>learned embeddings</strong> and neural scoring. Tonight we map three ideas that dominate production systems: dense embeddings for users and items, the <strong>two-tower</strong> architecture that generates candidates at web scale, and <strong>interest models</strong> (Alibaba's DIN and MIND) that rank by paying attention to a user's behaviour. We run tiny sketches to feel the mechanics - not trained models.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill peach">★ Run it now (Python)</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A clear mental model of embeddings and the two-tower retrieve-then-rank split, the intuition behind DIN's attention over a behaviour sequence and MIND's multiple interest vectors, two runnable sketches that show dot-product scoring and attention weighting on toy vectors, and an honest sense of what a 45-minute session can and cannot teach about deep recsys.
+    </div>
+    <div class="callout tip">
+      <strong>Re-verify - this area moves fast</strong>
+      Deep and industrial recommenders change quickly. The named architectures below (DIN 2018, MIND 2019, two-tower retrieval) are the published, durable cores - but before you cite state of the art in a deck or a design doc, re-check the current literature. What ships in production today is usually several iterations past the founding paper.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: EMBEDDINGS ============ -->
+  <section class="section" id="embeddings">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · learned representations</span>
+      <h2>Embeddings: users and items as vectors <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">Matrix factorization already taught you the core idea: represent each user and each item as a short vector of latent factors, and score a match by their dot product. Deep recsys generalizes this - the vectors (embeddings) are <em>learned</em>, can absorb any feature (category, brand, text, images), and feed neural layers instead of a single dot product.</p>
+
+    <p>An embedding table is just a lookup: item id in, dense vector out. Two items that get bought in similar contexts end up with nearby vectors, so nearness in vector space means "recommend-worthy". This is the same geometry you saw in b6, now the shared language of every modern model.</p>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Why embeddings replaced hand-built similarity<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>They fold in side features.</strong> A cold-start item with no purchases still has a category and a brand - embed those and it gets a sensible starting vector, softening the cold-start problem from b5.</li>
+          <li><strong>They are trained end to end.</strong> Instead of choosing cosine or Jaccard by hand, the model learns the representation that best predicts the outcome you care about (a click, a purchase).</li>
+          <li><strong>They compose.</strong> Concatenate a user's embedding with context (time, device) and pass it through layers - the network learns interactions you never coded.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>The same vector, many surfaces.</strong> A learned item embedding can power "similar items", search ranking, and the personalized homepage at once - compute it once, reuse everywhere, exactly the offline/online split you saw with item-item CF in b3. That reuse is why big platforms invest so heavily in one good embedding space.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: TWO-TOWER ============ -->
+  <section class="section" id="two-tower">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · candidate generation at scale</span>
+      <h2>Two-tower retrieval <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">You cannot score every one of a million items with a heavy neural net on every page load. Production systems split the job in two: a fast <strong>retrieval</strong> step narrows millions of items to a few hundred candidates, then a heavier <strong>ranking</strong> step orders them. The two-tower model is the standard retrieval design.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two-tower retrieval: a user tower turns user features into a user vector, an item tower turns item features into an item vector, and their dot product is the match score">
+        <style>
+          .b7tT { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .b7tX { font: 400 11.5px Inter, sans-serif; fill: #DCE6FB; }
+          .b7tI { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .b7tXi { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .b7tN { font: 600 13px Inter, sans-serif; fill: #6B0F3F; }
+          .b7tS { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+        </style>
+        <!-- user tower -->
+        <rect x="24" y="44" width="180" height="46" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b7tI" x="44" y="66">User features</text>
+        <text class="b7tXi" x="44" y="82">id, history, context</text>
+        <rect x="24" y="110" width="180" height="46" rx="10" fill="#2563EB"/>
+        <text class="b7tT" x="44" y="132">User tower</text>
+        <text class="b7tX" x="44" y="148">neural layers</text>
+        <rect x="24" y="176" width="180" height="44" rx="10" fill="#1E3A8A"/>
+        <text class="b7tT" x="44" y="203">User vector</text>
+        <!-- item tower -->
+        <rect x="676" y="44" width="180" height="46" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b7tI" x="696" y="66">Item features</text>
+        <text class="b7tXi" x="696" y="82">id, category, brand</text>
+        <rect x="676" y="110" width="180" height="46" rx="10" fill="#60A5FA"/>
+        <text class="b7tI" x="696" y="132">Item tower</text>
+        <text class="b7tXi" x="696" y="148">neural layers</text>
+        <rect x="676" y="176" width="180" height="44" rx="10" fill="#1E3A8A"/>
+        <text class="b7tT" x="696" y="203">Item vector</text>
+        <!-- dot product node -->
+        <rect x="352" y="150" width="176" height="70" rx="14" fill="#DB2777"/>
+        <text class="b7tS" x="378" y="180">Dot product</text>
+        <text class="b7tS" x="378" y="202">= match score</text>
+        <!-- arrows -->
+        <line x1="114" y1="90" x2="114" y2="110" stroke="#C7D2E4" stroke-width="2"/>
+        <line x1="114" y1="156" x2="114" y2="176" stroke="#C7D2E4" stroke-width="2"/>
+        <line x1="766" y1="90" x2="766" y2="110" stroke="#C7D2E4" stroke-width="2"/>
+        <line x1="766" y1="156" x2="766" y2="176" stroke="#C7D2E4" stroke-width="2"/>
+        <line x1="204" y1="198" x2="352" y2="188" stroke="#C7D2E4" stroke-width="2"/>
+        <line x1="676" y1="198" x2="528" y2="188" stroke="#C7D2E4" stroke-width="2"/>
+        <text class="b7tN" x="24" y="264">Item vectors are precomputed; retrieval = the nearest item vectors to the user vector.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - two-tower retrieval: user vector meets item vector by dot product</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Why two towers, and not one big network<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The two towers never touch until the final dot product. That separation is the whole trick:</p>
+        <ul>
+          <li><strong>Item vectors are precomputed offline</strong> for the entire catalog and stored in an index - exactly the offline move from item-item CF, now learned.</li>
+          <li><strong>At request time</strong> you run only the user tower once, then find the nearest item vectors with fast approximate nearest-neighbour search. Millions of items, milliseconds of work.</li>
+          <li><strong>Ranking is separate.</strong> The few hundred retrieved candidates then go to a heavier model (Part 3) that can afford richer features per candidate.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>Retrieve then rank</strong>
+          This two-stage shape - cheap recall over everything, then expensive precision over a shortlist - is the backbone of nearly every large recommender. It is also why b8's evaluation separates candidate-generation recall from final ranking quality.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: INTEREST MODELS ============ -->
+  <section class="section" id="interest">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · sequence &amp; interest models for ranking</span>
+      <h2>DIN and MIND: paying attention to behaviour <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">A user's history is a sequence - the last twenty things they viewed or bought. Older models averaged that history into one vector, which blurs everything together. Alibaba's <strong>Deep Interest Network (DIN, 2018)</strong> instead uses <em>attention</em>: when scoring a candidate item, it weights each past behaviour by how relevant it is to that candidate, then sums. A yoga history matters a lot when scoring a mat, barely at all when scoring a blender.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DIN attention: a candidate item attends over a sequence of past behaviours, giving high weight to relevant past items and low weight to unrelated ones">
+        <style>
+          .b7dT { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .b7dX { font: 400 11px Inter, sans-serif; fill: #DCE6FB; }
+          .b7dI { font: 700 12.5px Inter, sans-serif; fill: #111634; }
+          .b7dXi { font: 400 11px Inter, sans-serif; fill: #5B6480; }
+          .b7dN { font: 600 13px Inter, sans-serif; fill: #6B0F3F; }
+          .b7dW { font: 700 12px Inter, sans-serif; fill: #DB2777; }
+        </style>
+        <!-- candidate -->
+        <rect x="24" y="96" width="150" height="60" rx="12" fill="#DB2777"/>
+        <text class="b7dT" x="44" y="122">Candidate:</text>
+        <text class="b7dT" x="44" y="142">Yoga Block</text>
+        <text class="b7dXi" x="24" y="182">Score this item</text>
+        <!-- past behaviour sequence -->
+        <text class="b7dI" x="250" y="44">Past behaviour sequence - attention weight (w)</text>
+        <rect x="250" y="60" width="150" height="46" rx="10" fill="#1E3A8A"/>
+        <text class="b7dT" x="268" y="82">Yoga Mat</text><text class="b7dX" x="268" y="98">fitness</text>
+        <text class="b7dW" x="416" y="88">w = 0.46</text>
+        <rect x="250" y="116" width="150" height="46" rx="10" fill="#2563EB"/>
+        <text class="b7dT" x="268" y="138">Protein</text><text class="b7dX" x="268" y="154">fitness</text>
+        <text class="b7dW" x="416" y="144">w = 0.34</text>
+        <rect x="250" y="172" width="150" height="46" rx="10" fill="#BFDBFE"/>
+        <text class="b7dI" x="268" y="194">Cookbook</text><text class="b7dXi" x="268" y="210">kitchen</text>
+        <text class="b7dW" x="416" y="200">w = 0.13</text>
+        <rect x="250" y="228" width="150" height="42" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b7dI" x="268" y="254">Blender</text>
+        <text class="b7dW" x="416" y="254">w = 0.07</text>
+        <!-- attention sum -->
+        <rect x="560" y="120" width="180" height="70" rx="14" fill="#60A5FA"/>
+        <text class="b7dI" x="580" y="148">Weighted sum</text>
+        <text class="b7dXi" x="580" y="168">= interest for this</text>
+        <text class="b7dXi" x="580" y="184">candidate</text>
+        <line x1="500" y1="145" x2="560" y2="150" stroke="#C7D2E4" stroke-width="2"/>
+        <line x1="174" y1="126" x2="250" y2="130" stroke="#C7D2E4" stroke-width="2"/>
+        <text class="b7dN" x="24" y="292">Relevant past items (fitness) get high weight; unrelated ones (kitchen) little. That is DIN's core idea.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - DIN attention: the candidate weights each past behaviour by relevance</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>MIND: one user, several interests<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>DIN produces one interest vector per candidate. Alibaba's <strong>MIND (Multi-Interest Network with Dynamic Routing, 2019)</strong> goes further: it represents a single user with <em>several</em> interest vectors at once, because real shoppers are not one thing.</p>
+        <ul>
+          <li><strong>The problem it solves:</strong> a user who buys fitness gear <em>and</em> kitchen tools <em>and</em> kids' toys is badly described by one average vector - it lands between all three and matches none well.</li>
+          <li><strong>The move:</strong> dynamic routing clusters the behaviour sequence into K interest vectors (fitness, kitchen, toys), and retrieval pulls candidates for each interest separately, then merges.</li>
+          <li><strong>Why it matters for you:</strong> multi-interest retrieval directly improves diversity and coverage - the guardrails you will measure in b8 - not just raw accuracy.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>Deployed, published, and cited.</strong> DIN (Zhou et al., KDD 2018) and MIND (Li et al., 2019) are Alibaba's published production algorithms for click-through-rate prediction and retrieval, used across its e-commerce platforms including the AliExpress/Lazada family. We are teaching their named cores from the papers - not reproducing Alibaba's full live stack, which is far larger and constantly retrained.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO 1 ============ -->
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Demo 1 of 2</span>
+      <h2>A two-tower scoring sketch <span class="tag demo">★ 10 min · illustrative only</span></h2>
+    </div>
+    <p class="lede">This is a <strong>sketch</strong>, not a trained model. We random-initialize a user embedding table and an item embedding table, then score candidates by dot product and take the top-N - exactly the retrieval geometry, with untrained vectors so you can see the mechanics. Real towers learn these vectors from data; here they are random, so the ranking is illustrative.</p>
+
+    <div class="steps">
+      <div class="step"><p>Make an embedding table for users and one for items - random rows stand in for what a trained tower would output.</p></div>
+      <div class="step"><p>Look up one user's vector and every item's vector (the offline item table, in miniature).</p></div>
+      <div class="step"><p>Score each item by dot product with the user vector, then return the top-N - the retrieval step.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - two-tower dot-product sketch (illustrative, real towers are trained)</span>import numpy as np
+
+rng = np.random.default_rng(7)          # reproducible
+D = 8                                    # embedding dimension
+
+items = ["Yoga Mat","Dumbbells","Protein","Yoga Block","Blender","Cookbook"]
+user_emb = rng.normal(size=D)                       # ONE user vector (random stand-in)
+item_emb = {it: rng.normal(size=D) for it in items} # item embedding table
+
+def two_tower_topn(user_vec, item_table, n=3):
+    # retrieval: score every item by dot product, return the nearest
+    scores = {it: float(np.dot(user_vec, vec)) for it, vec in item_table.items()}
+    ranked = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+    return ranked[:n]
+
+for it, s in two_tower_topn(user_emb, item_emb, n=3):
+    print(f"{it:&lt;10} score {s:+.3f}")
+
+print("\n# NOTE: embeddings are RANDOM here - a real user/item tower LEARNS them")
+print("# from millions of interactions. This shows the scoring mechanic only.")</div>
+
+    <div class="callout tip">
+      <strong>What is real vs illustrative</strong>
+      The dot-product scoring, the top-N cut, and the offline item table are exactly how two-tower retrieval works. What is fake here is the <em>values</em> in the vectors - they are random, not learned - so treat the ranking as a mechanic to feel, never as a recommendation. Training the towers is a deep-learning course in its own right.
+    </div>
+  </section>
+
+  <!-- ============ DEMO 2 ============ -->
+  <section class="section" id="demo-2">
+    <div class="section-kicker">
+      <span class="klabel">Demo 2 of 2</span>
+      <h2>An attention-weight sketch (DIN intuition) <span class="tag demo">★ 8 min · sketch</span></h2>
+    </div>
+    <p class="lede">Again a <strong>sketch</strong>: we take a candidate item and a short behaviour sequence, measure how similar each past item is to the candidate, and softmax those similarities into attention weights. Relevant history gets more weight - the beating heart of DIN, on toy vectors.</p>
+
+    <div class="steps">
+      <div class="step"><p>Give the candidate and each past item a small vector (here, fitness-vs-kitchen coordinates - a stand-in for learned embeddings).</p></div>
+      <div class="step"><p>Score similarity of each past item to the candidate, then softmax into weights that sum to 1.</p></div>
+      <div class="step"><p>Read the weights: fitness history outweighs kitchen history when scoring a fitness candidate.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - attention over a behaviour sequence (sketch of DIN)</span>import numpy as np
+
+def softmax(x):
+    e = np.exp(x - np.max(x))            # stable softmax
+    return e / e.sum()
+
+# toy 2-D embeddings: [fitness, kitchen]. A real model LEARNS these.
+candidate = np.array([1.0, 0.0])                       # a fitness item (Yoga Block)
+history = {
+    "Yoga Mat":  np.array([0.95, 0.05]),
+    "Protein":   np.array([0.80, 0.10]),
+    "Cookbook":  np.array([0.10, 0.90]),
+    "Blender":   np.array([0.05, 0.95]),
+}
+
+names  = list(history)
+sims   = np.array([candidate @ history[h] for h in names])  # relevance to candidate
+weights = softmax(sims * 3.0)                                # sharpen, then normalize
+
+for h, w in zip(names, weights):
+    print(f"{h:&lt;10} attention {w:.2f}")
+
+# DIN then builds the user's interest as the weighted sum of past-item vectors:
+interest = sum(w * history[h] for h, w in zip(names, weights))
+print("\ninterest vector for this candidate:", np.round(interest, 2))
+print("# SKETCH: real DIN learns the attention function; this is the intuition.")</div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Why attention beat averaging.</strong> Before DIN, models compressed a whole history into one fixed vector, so a diverse shopper looked "average" for every candidate. Attention lets the <em>same</em> history read differently depending on what you are scoring - the fitness past lights up for a mat and stays quiet for a blender. That is the published insight (Zhou et al., 2018); the code above only sketches its shape.</p>
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 30-45 min total</span></h2>
+    </div>
+    <ul>
+      <li>Run the two-tower sketch with a different random seed and larger <code>D</code>. Note how the top-N changes with random vectors - proof that untrained embeddings carry no real signal.</li>
+      <li>In the attention sketch, add a fifth past item and change the candidate to a kitchen item. Confirm the weights shift toward the kitchen history.</li>
+      <li>Sketch the retrieve-then-rank split for Kirana on paper: what runs offline, what runs per request, and where the two-tower index would live (you will formalize this in b9).</li>
+      <li>Write two sentences on when MIND's multi-interest idea would help a Kirana shopper - and how you would measure that it did (tie it to diversity/coverage in b8).</li>
+      <li>Read the DIN paper abstract (Zhou et al., 2018, arXiv:1706.06978) and skim MIND (Li et al., 2019, arXiv:1904.08030). Note one thing each does that our sketch does not.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">A survey of the published, named cores of modern industrial recsys - taught from the papers, not reproduced from production stacks. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">DIN - Zhou et al. (2018), "Deep Interest Network for CTR Prediction," KDD 2018, arXiv:1706.06978</span><span class="note">Part 3 + Demo 2 · attention over a behaviour sequence; deployed across Alibaba (AliExpress/Lazada family)</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">MIND - Li et al. (2019), "Multi-Interest Network with Dynamic Routing," arXiv:1904.08030</span><span class="note">Part 3 · multi-interest retrieval; surveyed, not implemented</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Two-tower retrieval &amp; learned embeddings (industry practice)</span><span class="note">Parts 1-2 + Demo 1 · retrieve-then-rank; sketch only, real towers are trained</span></div>
+    </div>
+    <div class="callout tip">
+      <strong>Honest scope</strong>
+      Deep-learning recsys implemented from scratch is out of scope by design - this is a cited survey with illustrative sketches. Training real embeddings, towers, and attention models is a dedicated ML course. And because the area moves fast, re-verify current best practice before you present it as settled.
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · Why does the two-tower model keep the user tower and item tower separate?</p>
+      <button class="qopt" type="button">A · So the two vectors can never be compared</button>
+      <button class="qopt" type="button">B · So item vectors can be precomputed offline and retrieval is a fast nearest-vector search at request time</button>
+      <button class="qopt" type="button">C · Because neural networks cannot process two inputs at once</button>
+      <p class="qwhy">The towers meet only at the final dot product. Precomputing the whole item catalog offline lets you run just the user tower per request and find nearest items in milliseconds.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · What is DIN's core idea?</p>
+      <button class="qopt" type="button">A · Average the whole user history into one fixed vector</button>
+      <button class="qopt" type="button">B · Recommend the most popular items</button>
+      <button class="qopt" type="button">C · Attention: weight each past behaviour by its relevance to the candidate being scored, then sum</button>
+      <p class="qwhy">DIN weights the behaviour sequence per candidate, so a fitness history counts heavily for a mat and lightly for a blender - instead of blurring everything into one average.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · The Demo 1 embeddings are random. What does that mean for its output?</p>
+      <button class="qopt" type="button">A · The ranking is illustrative only - it shows the scoring mechanic, not real recommendations</button>
+      <button class="qopt" type="button">B · It is a fully trained production model</button>
+      <button class="qopt" type="button">C · Random embeddings are how Alibaba serves recs</button>
+      <p class="qwhy">Real towers learn their vectors from millions of interactions. Our random vectors demonstrate dot-product retrieval geometry, but the ranking carries no real signal - it is a sketch.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Builder session 7 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Embeddings</b><span>learned dense vectors for users/items; nearness = recommend-worthy. Absorb side features, ease cold-start.</span></div>
+      <div class="cheat-item"><b>Two-tower</b><span>user tower + item tower, matched by dot product. Item vectors precomputed; retrieval = nearest-vector search.</span></div>
+      <div class="cheat-item"><b>Retrieve then rank</b><span>cheap recall over millions, then a heavier model over a few hundred candidates. The backbone of scale.</span></div>
+      <div class="cheat-item"><b>DIN (2018)</b><span>attention over the behaviour sequence - weight each past item by relevance to the candidate. arXiv:1706.06978.</span></div>
+      <div class="cheat-item"><b>MIND (2019)</b><span>several interest vectors per user via dynamic routing - one shopper is not one thing. arXiv:1904.08030.</span></div>
+      <div class="cheat-item"><b>Sketch, not trained</b><span>our demos use random/toy vectors to show mechanics. Real deep recsys is a dedicated ML course.</span></div>
+      <div class="cheat-item"><b>Re-verify</b><span>deep + industrial recsys moves fast; re-check the current literature before you cite state of the art.</span></div>
+      <div class="cheat-item"><b>Next session</b><span>b8 - evaluation: precision@k, recall, NDCG, MAP, and offline vs online, honestly.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Builder session 7 of 10 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="b8-evaluation.html">Next: Evaluation - offline metrics, honestly →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

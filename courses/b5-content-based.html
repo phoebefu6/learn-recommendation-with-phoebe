@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder session 5 · Content-based filtering - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Builder session 5 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Builder track · Session 5 of 10</div>
+    <h1>Content-based filtering: <span class="accent">recommend from features, not crowds</span></h1>
+    <p class="sub">Collaborative filtering leans on the crowd - it needs other people's interactions before it can say anything. Content-based filtering leans on the item itself: its tags, its text, its features. Turn each Kirana item into a vector, average the vectors of what a shopper liked into a taste profile, and rank everything by cosine to that profile. Its superpower is cold-start for brand-new items; its trap is the filter bubble.</p>
+    <div class="chip-row">
+      <span class="chip level">🟡 Builder track</span>
+      <span class="chip audience">Practitioners: analysts · data scientists · engineers</span>
+      <span class="chip audience">Python 3.10+ · a notebook</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Recap</span>
+      <span class="a2" style="flex:4">3-18 · Item profiles + taste profiles</span>
+      <span class="a3" style="flex:5">18-42 · Build-along: TF-IDF + cosine</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Where this sits</h2>
+    </div>
+    <p class="lede">In b3 and b4 you built collaborative filtering - item-to-item and user-to-user - which learn purely from the interaction matrix. Powerful, but blind on day one: a brand-new item nobody has touched has no column of neighbours, so CF can never surface it. Content-based filtering solves exactly that gap. It reads what an item <em>is</em> (its description, its tags, its features), so it can recommend an item with zero interactions - as long as it has features. Tonight you turn Kirana's catalog into TF-IDF vectors, build a per-shopper taste profile, and match the two with cosine similarity.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill peach">★ Run it now (Python)</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      An item profile built from text and tags with <code>TfidfVectorizer</code>, an "items similar to this item" function using cosine similarity, a shopper taste profile built by averaging the vectors of what they bought, a top-N content recommender ranked by cosine, and a clear grasp of the one thing content-based does that collaborative filtering cannot - recommend on day one.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: ITEM PROFILES ============ -->
+  <section class="section" id="profiles">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers the recsys textbook content-based chapter</span>
+      <h2>An item is a vector of features <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">Content-based filtering never looks at who bought what. It looks at the item's own content - its description text, its category, its tags - and turns that into a numeric vector. Two items are similar if their vectors point the same way. A shopper is just the average of the items they liked.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An item becomes a feature and tag vector, which is matched by cosine similarity against a shopper's taste profile built from what they bought">
+        <style>
+          .b5pT { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .b5pH { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .b5pX { font: 400 12px Inter, sans-serif; fill: #5B6480; }
+          .b5pW { font: 400 12px Inter, sans-serif; fill: #DCE6FB; }
+          .b5pN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+          .b5pC { font: 700 13px Inter, sans-serif; fill: #2563EB; }
+        </style>
+        <text class="b5pT" x="30" y="32">From item text to a match - no interactions needed</text>
+        <!-- item card -->
+        <rect x="24" y="52" width="180" height="86" rx="12" fill="#1E3A8A"/>
+        <text class="b5pH" x="44" y="82">Item: Yoga Mat</text>
+        <text class="b5pW" x="44" y="104">"non-slip fitness</text>
+        <text class="b5pW" x="44" y="122">home workout mat"</text>
+        <!-- arrow -->
+        <line x1="210" y1="95" x2="256" y2="95" stroke="#C7D2E4" stroke-width="3"/>
+        <polygon points="256,89 268,95 256,101" fill="#C7D2E4"/>
+        <!-- feature vector -->
+        <rect x="274" y="52" width="248" height="86" rx="12" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b5pC" x="292" y="78">Feature / tag vector</text>
+        <text class="b5pX" x="292" y="102">fitness 0.6 · yoga 0.5</text>
+        <text class="b5pX" x="292" y="122">home 0.4 · workout 0.4</text>
+        <!-- arrow -->
+        <line x1="528" y1="95" x2="574" y2="95" stroke="#C7D2E4" stroke-width="3"/>
+        <polygon points="574,89 586,95 574,101" fill="#C7D2E4"/>
+        <!-- taste profile -->
+        <rect x="592" y="52" width="264" height="86" rx="12" fill="#2563EB"/>
+        <text class="b5pH" x="612" y="78">Your taste profile</text>
+        <text class="b5pW" x="612" y="102">avg of what you bought:</text>
+        <text class="b5pW" x="612" y="122">fitness 0.7 · home 0.5</text>
+        <!-- match line -->
+        <rect x="274" y="170" width="582" height="46" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b5pC" x="294" y="198">cosine(item vector, taste profile) = 0.82 - a strong match, recommend it</text>
+        <rect x="30" y="262" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b5pN" x="54" y="274">The catalog needs no ratings - only words. That is why content-based works on day one.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - an item becomes a vector, then cosine-matches your taste profile</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Why TF-IDF, and a nod to embeddings<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>You need to turn text into numbers. The classic choice is <strong>TF-IDF</strong> (term frequency x inverse document frequency):</p>
+        <ul>
+          <li><strong>Term frequency</strong> - how often a word appears in this item's text. "protein" in a protein-powder listing scores high.</li>
+          <li><strong>Inverse document frequency</strong> - words common across the whole catalog (like "the", or "product") get down-weighted; distinctive words get up-weighted. TF-IDF automatically finds the words that <em>characterize</em> an item.</li>
+          <li><strong>The result</strong> - each item is a sparse vector over the vocabulary, and similar items point the same direction.</li>
+        </ul>
+        <p>Modern systems often swap TF-IDF for <strong>embeddings</strong> - dense vectors from a language model (sentence-transformers) that capture meaning, so "trainers" and "running shoes" land close even with no shared words. The pipeline is identical: text -&gt; vector -&gt; cosine. TF-IDF is the transparent, dependency-light place to learn it; embeddings are the drop-in upgrade.</p>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>Cold-start is where content-based earns its keep.</strong> A marketplace adds a hundred new listings a day. Collaborative filtering is silent on every one of them until enough people interact. Content-based can recommend a brand-new item the moment its description is written - so most production stacks run content-based as the cold-start layer and hand off to collaborative filtering once interactions accumulate.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>The taste profile is just an average<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Once each item is a vector, a user profile needs no new machinery. Take the items a shopper bought, and average their vectors. The mean is a point in the same feature space that leans toward whatever the shopper keeps buying - heavy on "fitness" if they buy fitness gear, heavy on "kitchen" if they buy appliances. Then score every item in the catalog by cosine similarity to that mean and recommend the top-N they do not already own. That is the whole algorithm.</p>
+        <p>Because the profile lives in feature space, you can read it: a taste profile weighted toward "nutrition" and "fitness" tells you, in plain words, what this shopper is into - unlike matrix factorization's latent factors in b6, which are powerful but opaque.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: STRENGTH AND WEAKNESS ============ -->
+  <section class="section" id="tradeoffs">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers cold-start vs the filter bubble</span>
+      <h2>The superpower and the trap <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">Every family has one thing it is great at and one thing it is bad at. Content-based is great at new items and terrible at surprise. Know both before you ship it.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cold-start contrast: collaborative filtering needs interactions and fails on a brand-new item with none, while content-based works from features on day one">
+        <style>
+          .b5cT { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .b5cX { font: 400 12px Inter, sans-serif; fill: #DCE6FB; }
+          .b5cI { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .b5cXi { font: 400 12px Inter, sans-serif; fill: #5B6480; }
+          .b5cN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text class="b5cI" x="30" y="30">A brand-new item just landed: zero interactions, full description</text>
+        <!-- collaborative row (fails) -->
+        <rect x="24" y="48" width="832" height="92" rx="12" fill="#FCE7F3" stroke="#DB2777" stroke-width="1.5"/>
+        <text class="b5cN" x="44" y="76">Collaborative filtering</text>
+        <text class="b5cXi" x="44" y="100">Looks up the item's column of past interactions to find neighbours.</text>
+        <text class="b5cXi" x="44" y="122">New item = empty column = no neighbours. It cannot be recommended. ✗</text>
+        <rect x="700" y="70" width="132" height="46" rx="10" fill="#DB2777"/>
+        <text class="b5cT" x="726" y="98">FAILS day one</text>
+        <!-- content row (works) -->
+        <rect x="24" y="156" width="832" height="92" rx="12" fill="#1E3A8A"/>
+        <text class="b5cT" x="44" y="184">Content-based filtering</text>
+        <text class="b5cX" x="44" y="208">Reads the item's description and tags - available the moment it is listed.</text>
+        <text class="b5cX" x="44" y="230">Vector matches taste profiles immediately. It gets recommended. ✓</text>
+        <rect x="700" y="178" width="132" height="46" rx="10" fill="#60A5FA"/>
+        <text class="b5cI" x="720" y="206">WORKS day one</text>
+        <rect x="30" y="272" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b5cN" x="54" y="284">The trap: it only ever recommends "more of the same" - a filter bubble. Blend for diversity.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - CF is blind on a new item; content-based works from features on day one</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The filter bubble, and how to fight it<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The flip side of "recommend items like what you liked" is that the shopper is walled into their own history. Buy three yoga items and content-based will show you a fourth, and a fifth - never the cookbook that a like-minded shopper loved. That narrowness is the <strong>filter bubble</strong>, and it is the defining weakness of content-based filtering.</p>
+        <ul>
+          <li><strong>Blend it.</strong> Run content-based for cold-start coverage, collaborative filtering for taste discovery, and mix the two - a hybrid, which you meet in b8.</li>
+          <li><strong>Inject diversity.</strong> Do not just take the top-N by cosine; re-rank to include some items that are relevant but different, so the shopper sees range.</li>
+          <li><strong>Watch the loop.</strong> Recommenders shape behaviour - narrow recs beget narrow purchases beget narrower recs. You monitor exactly this feedback loop in b10.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>Content-based is a starting layer, not the whole system</strong>
+          It is the cheapest way to cover new items and new-ish users, and it is fully explainable. But shipped alone it gets boring fast. Almost every production recommender uses it as one signal in a blend, never as the only one.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO 1 ============ -->
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Demo 1 of 2</span>
+      <h2>TF-IDF item profiles, then "items like this" <span class="tag demo">★ 12 min · everyone builds</span></h2>
+    </div>
+    <p class="lede">Vectorize Kirana's catalog with <code>TfidfVectorizer</code>, take the pairwise <code>cosine_similarity</code>, and ask for the items most similar to a given item - the "you might also like" strip that needs no interaction data at all.</p>
+
+    <div class="steps">
+      <div class="step"><p>Build a small item catalog: id, name, and a text field of description plus tags (fitness / kitchen / nutrition, mirroring our live catalog).</p></div>
+      <div class="step"><p>Fit <code>TfidfVectorizer</code> on the text column to get an items x terms matrix.</p></div>
+      <div class="step"><p>Compute the items x items <code>cosine_similarity</code> once.</p></div>
+      <div class="step"><p>For any item, sort its similarity row and return the top-N others.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - TF-IDF + cosine, items like this</span>import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Kirana item catalog: id, name, text (description + tags)
+items = pd.DataFrame({
+    "item": ["Yoga Mat","Dumbbells","Protein Powder",
+             "Blender","Cookbook","Running Shoes"],
+    "text": [
+        "fitness yoga mat non-slip home workout exercise",
+        "fitness dumbbells weights strength home gym workout",
+        "nutrition protein powder whey fitness recovery shake",
+        "kitchen blender smoothie nutrition shake appliance",
+        "kitchen cookbook healthy nutrition recipes meals",
+        "fitness running shoes cardio exercise outdoor sport",
+    ],
+})
+
+vec = TfidfVectorizer()
+X = vec.fit_transform(items["text"])       # items x terms, TF-IDF weighted
+sim = cosine_similarity(X)                 # items x items similarity
+
+def similar_to(name, n=3):
+    i = items.index[items["item"] == name][0]
+    order = [j for j in sim[i].argsort()[::-1] if j != i][:n]
+    return items["item"].iloc[order].tolist()
+
+print("Similar to Yoga Mat:", similar_to("Yoga Mat"))
+print("Similar to Blender: ", similar_to("Blender"))</div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Notice there are no users anywhere in that code.</strong> The similarity between Yoga Mat and Dumbbells comes entirely from shared words - "fitness", "home", "workout". That is why a listing added five minutes ago can already appear in a "similar items" strip: content-based reads the description, not the sales history.</p>
+    </div>
+  </section>
+
+  <!-- ============ DEMO 2 ============ -->
+  <section class="section" id="demo-2">
+    <div class="section-kicker">
+      <span class="klabel">Demo 2 of 2</span>
+      <h2>Build a taste profile, recommend top-N <span class="tag demo">★ 10 min · build your own</span></h2>
+    </div>
+    <p class="lede">Personalize it. Average the TF-IDF rows of the items a shopper bought into one taste-profile vector, then score every catalog item by cosine to that profile and return the top-N they do not already own.</p>
+
+    <div class="steps">
+      <div class="step"><p>Pick a shopper and the items they bought.</p></div>
+      <div class="step"><p>Average those items' TF-IDF rows into a single taste-profile vector.</p></div>
+      <div class="step"><p>Cosine-score the profile against every item, drop what they own, take the top-N.</p></div>
+      <div class="step"><p>Compare against a simpler binary tag-vector profile - same idea, no TF-IDF.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - taste profile from TF-IDF rows</span>import numpy as np
+
+def recommend_for(bought, n=3):
+    idx = items.index[items["item"].isin(bought)]
+    profile = np.asarray(X[idx].mean(axis=0))    # mean of liked item vectors
+    scores = cosine_similarity(profile, X)[0]    # taste vs every item
+    ranked = scores.argsort()[::-1]
+    return [items["item"].iloc[j] for j in ranked
+            if items["item"].iloc[j] not in bought][:n]
+
+# u1 buys fitness gear -&gt; expect more fitness/nutrition, not kitchen
+print(recommend_for(["Yoga Mat","Dumbbells"]))</div>
+
+    <p>The same idea with a transparent, hand-built <strong>tag vector</strong> - no TF-IDF, just a binary bag of tags - makes the mechanics obvious:</p>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - simpler binary tag-vector version</span>tags = pd.DataFrame({
+    "fitness":   [1,1,1,0,0,1],
+    "kitchen":   [0,0,0,1,1,0],
+    "nutrition": [0,0,1,1,1,0],
+}, index=items["item"])
+
+def recommend_tags(bought, n=3):
+    profile = tags.loc[bought].mean(axis=0).values.reshape(1, -1)
+    scores = cosine_similarity(profile, tags.values)[0]
+    ranked = scores.argsort()[::-1]
+    return [tags.index[j] for j in ranked
+            if tags.index[j] not in bought][:n]
+
+print(recommend_tags(["Yoga Mat","Dumbbells"]))   # leans fitness/nutrition</div>
+
+    <div class="callout tip">
+      <strong>Averaging is a choice, not a law</strong>
+      The mean treats every past purchase equally. Real systems weight recent buys higher, decay old ones, and sometimes keep separate profiles per interest so a shopper who buys both gym gear and cookware does not get a muddy "average" of the two. That multi-interest idea is exactly what Alibaba's MIND tackles in b7.
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 30-45 min total</span></h2>
+    </div>
+    <ul>
+      <li>Vectorize your own catalog (product titles + descriptions) with <code>TfidfVectorizer</code> and print "items similar to X" for three items. Do the neighbours make sense?</li>
+      <li>Build a taste profile for one shopper by averaging their purchases, and generate top-5 recommendations. Are they too narrow?</li>
+      <li>Swap TF-IDF for sentence-transformer embeddings on the same catalog and compare - do near-synonyms now cluster together?</li>
+      <li>Take a brand-new item with zero sales. Confirm collaborative filtering ignores it but content-based recommends it. That is the cold-start win in one experiment.</li>
+      <li>Optional: skim the content-based chapter of Aggarwal's <em>Recommender Systems: The Textbook</em> (2016) - the item-profile and cold-start framing.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">Taught from the recommender-systems canon. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Aggarwal, <em>Recommender Systems: The Textbook</em> (2016) - content-based chapter</span><span class="note">Parts 1-2 · item profiles, user profiles, TF-IDF, cold-start</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Ricci et al., <em>Recommender Systems Handbook</em> - content-based methods</span><span class="note">Demos · vectorization and cosine matching</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Embeddings for content (sentence-transformers)</span><span class="note">Part 1 · named as the drop-in upgrade over TF-IDF</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · What does content-based filtering use to make recommendations?</p>
+      <button class="qopt" type="button">A · Other users' interaction patterns</button>
+      <button class="qopt" type="button">B · The item's own content - text, tags, features - turned into a vector</button>
+      <button class="qopt" type="button">C · The order items were added to the catalog</button>
+      <p class="qwhy">Content-based reads what the item is. Each item becomes a vector (e.g. TF-IDF of its text); similar vectors mean similar items. No interaction data required.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · Why does content-based filtering beat collaborative filtering on a brand-new item?</p>
+      <button class="qopt" type="button">A · It is more accurate in every case</button>
+      <button class="qopt" type="button">B · It needs fewer lines of code</button>
+      <button class="qopt" type="button">C · A new item has no interactions for CF to use, but its description gives content-based a vector on day one</button>
+      <p class="qwhy">Collaborative filtering needs a column of interactions to find neighbours; a new item's column is empty. Content-based works from features the moment the item is listed - the cold-start win.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · What is the main weakness of content-based filtering?</p>
+      <button class="qopt" type="button">A · Narrowness - it only ever recommends "more of the same", a filter bubble</button>
+      <button class="qopt" type="button">B · It cannot handle text data</button>
+      <button class="qopt" type="button">C · It requires explicit star ratings</button>
+      <p class="qwhy">Because it recommends items like what you already liked, it walls shoppers into their own history. Blend it with collaborative filtering and inject diversity to fight the filter bubble.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Builder session 5 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Item profile</b><span>each item = a vector of its features/tags/text. No users involved.</span></div>
+      <div class="cheat-item"><b>TF-IDF</b><span>term frequency x inverse doc frequency; up-weights distinctive words. Embeddings are the upgrade.</span></div>
+      <div class="cheat-item"><b>Taste profile</b><span>average the vectors of items a shopper liked - a point in the same feature space.</span></div>
+      <div class="cheat-item"><b>Cosine match</b><span>score every item vs the taste profile by cosine; take top-N not already owned.</span></div>
+      <div class="cheat-item"><b>Superpower</b><span>cold-start for NEW items - works from features on day one, where CF is blind.</span></div>
+      <div class="cheat-item"><b>Weakness</b><span>narrowness / filter bubble - only "more of the same". Blend + diversify.</span></div>
+      <div class="cheat-item"><b>sklearn move</b><span>TfidfVectorizer().fit_transform(text) then cosine_similarity; mean rows for a profile.</span></div>
+      <div class="cheat-item"><b>Next session</b><span>b6 - matrix factorization: latent factors and the Netflix Prize idea.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Builder session 5 of 10 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="b6-matrix-factorization.html">Next: Matrix factorization &amp; latent factors →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

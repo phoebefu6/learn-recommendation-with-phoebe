@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder session 10 · Monitoring &amp; iteration - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Builder session 10 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Builder track · Session 10 of 10</div>
+    <h1>Monitoring &amp; iteration: <span class="accent">keeping the recommender healthy</span></h1>
+    <p class="sub">The capstone. A shipped model is not a finished model - it decays. This session closes the loop that opened with the analyst in b2: monitor CTR, conversion and precision@k on fresh data; distinguish data drift from concept drift and detect both; guard against the feedback loop that quietly turns your model into a popularity echo chamber; set a retraining cadence; and A/B test every change so nothing ships unless the primary metric wins and the guardrails hold. Serve, log, monitor, retrain, repeat - forever.</p>
+    <div class="chip-row">
+      <span class="chip level">🔴 Builder track</span>
+      <span class="chip audience">Practitioners: analysts · data scientists · engineers</span>
+      <span class="chip audience">Python 3.10+ · a notebook</span>
+      <span class="chip time">Capstone · session 10 of 10</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-20 · Monitoring, drift, feedback loops</span>
+      <span class="a3" style="flex:5">20-42 · Build-along: CTR monitor + drift detector</span>
+      <span class="a4" style="flex:1">42-45 · Wrap</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Shipping is the start, not the finish</h2>
+    </div>
+    <p class="lede">In b9 you served Kirana's recs and rendered the rail. The day after launch, the world starts drifting away from your training data: new products arrive, tastes move, a holiday changes what people buy. Worse, your own recommendations now shape the very behaviour you train on next - a feedback loop that can quietly collapse variety. This final session gives you the instruments to keep the recommender healthy: monitoring, drift detection, guardrails, a retraining cadence, and the A/B discipline that gates every change. This is the loop the analyst's first pivot table in b2 was always heading toward.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill peach">★ Run it now (Python)</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A rolling-CTR monitor that flags a drop before anyone complains, a drift detector that compares this week's recommended-item mix to last week's and raises an alert, a clear grasp of the feedback-loop danger and the guardrails that contain it, and the offline-gate then online-A/B rule that decides what ships.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: MONITORING ============ -->
+  <section class="section" id="monitoring">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · industry monitoring practice</span>
+      <h2>Monitoring: watch the numbers that pay the bills <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">Offline metrics from b8 told you the model was good at launch. Monitoring tells you it still is. You track two layers: business outcomes (CTR, conversion, revenue per session) and model quality (precision@k on fresh, held-out interactions) - side by side, every day.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 290" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A monitoring panel: a rolling daily CTR line dropping below its alert threshold, plus a rolling-CTR tile and a drift-alert tile">
+        <style>
+          .b10mI { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .b10mX { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .b10mB { font: 800 22px Inter, sans-serif; fill: #111634; }
+          .b10mH { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .b10mN { font: 600 13px Inter, sans-serif; fill: #6B0F3F; }
+          .b10mA { font: 700 13px Inter, sans-serif; fill: #DB2777; }
+        </style>
+        <text class="b10mI" x="24" y="28">Rolling daily CTR, with the alert threshold</text>
+        <line x1="90" y1="60" x2="90" y2="210" stroke="#C7D2E4" stroke-width="1.5"/>
+        <line x1="90" y1="210" x2="510" y2="210" stroke="#C7D2E4" stroke-width="1.5"/>
+        <text class="b10mX" x="44" y="78">4.5%</text>
+        <text class="b10mX" x="44" y="206">2.0%</text>
+        <line x1="90" y1="148" x2="510" y2="148" stroke="#DB2777" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text class="b10mA" x="360" y="142">alert threshold 3.0%</text>
+        <polyline points="100,85.6 160,90.8 220,96 280,106.4 340,127.2 400,148 460,168.8"
+                  fill="none" stroke="#2563EB" stroke-width="2.5"/>
+        <circle cx="100" cy="85.6" r="4" fill="#2563EB"/>
+        <circle cx="160" cy="90.8" r="4" fill="#2563EB"/>
+        <circle cx="220" cy="96" r="4" fill="#2563EB"/>
+        <circle cx="280" cy="106.4" r="4" fill="#2563EB"/>
+        <circle cx="340" cy="127.2" r="4" fill="#2563EB"/>
+        <circle cx="400" cy="148" r="4" fill="#60A5FA"/>
+        <circle cx="460" cy="168.8" r="5" fill="#DB2777"/>
+        <text class="b10mX" x="96" y="228">day 1</text>
+        <text class="b10mX" x="440" y="228">day 7</text>
+        <rect x="560" y="56" width="296" height="80" rx="12" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b10mI" x="580" y="82">Rolling 7-day CTR</text>
+        <text class="b10mB" x="580" y="114">2.6%</text>
+        <text class="b10mA" x="672" y="114">▼ below 3.0%</text>
+        <rect x="560" y="150" width="296" height="94" rx="12" fill="#FCE7F3" stroke="#DB2777" stroke-width="1.5"/>
+        <text class="b10mA" x="580" y="178">⚠ Drift alert</text>
+        <text class="b10mN" x="580" y="202">recommended-item mix</text>
+        <text class="b10mN" x="580" y="222">shifted vs last week</text>
+        <text class="b10mN" x="580" y="240">(PSI 0.29 - investigate)</text>
+        <rect x="24" y="262" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b10mN" x="48" y="274">Monitoring turns a silent decay into a page you can act on: catch the drop, then diagnose the drift.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the monitoring panel: rolling CTR against threshold, plus a drift alert tile</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The two layers you watch every day<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Business metrics:</strong> click-through rate on the rail, add-to-cart and conversion, revenue per session. These are what leadership funds - dashboard them daily with alert thresholds.</li>
+          <li><strong>Model-quality metrics:</strong> precision@k and recall@k computed on fresh interactions the model has not seen. A model can hold its offline score yet lose live CTR - watch both, because they diverge.</li>
+          <li><strong>Alerting, not just charting:</strong> a dashboard nobody opens catches nothing. Set a threshold (a rolling CTR floor) and page someone when it breaks.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>Fresh data is the honesty check.</strong> Precision@k on last month's test set flatters a stale model. Recomputing it on this week's clicks is what reveals decay - the same held-out logic from b8, run continuously instead of once. When live CTR and offline precision drift apart, trust the live number.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: DRIFT + FEEDBACK LOOP ============ -->
+  <section class="section" id="drift">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · drift, feedback loops, guardrails</span>
+      <h2>Drift, the feedback trap, and the guardrails <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">Two things break a live recommender: the world changes underneath it, and the recommender changes the world. Name them precisely so you can detect and contain each.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 270" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The closed loop: serve recs, log interactions, monitor, retrain, back to serve - passing through a guardrails gate before a new model ships">
+        <style>
+          .b10lH { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .b10lX { font: 400 11.5px Inter, sans-serif; fill: #DCE6FB; }
+          .b10lI { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .b10lXi { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .b10lG { font: 700 13px Inter, sans-serif; fill: #6B0F3F; }
+          .b10lGx { font: 400 11.5px Inter, sans-serif; fill: #6B0F3F; }
+          .b10lN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text class="b10lI" x="24" y="28">The loop runs forever - and a gate guards what ships</text>
+        <rect x="24" y="46" width="180" height="72" rx="12" fill="#2563EB"/>
+        <text class="b10lH" x="44" y="80">Serve recs</text>
+        <text class="b10lX" x="44" y="100">the live rail</text>
+        <rect x="234" y="46" width="190" height="72" rx="12" fill="#1E3A8A"/>
+        <text class="b10lH" x="254" y="80">Log interactions</text>
+        <text class="b10lX" x="254" y="100">clicks, buys, skips</text>
+        <rect x="454" y="46" width="170" height="72" rx="12" fill="#60A5FA"/>
+        <text class="b10lI" x="474" y="80">Monitor</text>
+        <text class="b10lXi" x="474" y="100">CTR, precision@k</text>
+        <rect x="654" y="46" width="202" height="72" rx="12" fill="#BFDBFE"/>
+        <text class="b10lI" x="674" y="80">Retrain</text>
+        <text class="b10lXi" x="674" y="100">on fresh data, on cadence</text>
+        <line x1="204" y1="82" x2="230" y2="82" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="230,77 240,82 230,87" fill="#C7D2E4"/>
+        <line x1="424" y1="82" x2="450" y2="82" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="450,77 460,82 450,87" fill="#C7D2E4"/>
+        <line x1="624" y1="82" x2="650" y2="82" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="650,77 660,82 650,87" fill="#C7D2E4"/>
+        <rect x="300" y="176" width="280" height="56" rx="12" fill="#FCE7F3" stroke="#DB2777" stroke-width="1.5"/>
+        <text class="b10lG" x="320" y="202">Guardrails gate</text>
+        <text class="b10lGx" x="320" y="222">diversity · business rules · A/B win</text>
+        <polyline points="755,118 755,204 582,204" fill="none" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="584,199 574,204 584,209" fill="#C7D2E4"/>
+        <polyline points="298,204 114,204 114,120" fill="none" stroke="#C7D2E4" stroke-width="2.5"/>
+        <polygon points="109,122 114,112 119,122" fill="#C7D2E4"/>
+        <rect x="24" y="250" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b10lN" x="48" y="262">A retrained model only re-enters the loop if it clears the gate - never automatically.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the closed loop with a guardrails gate before any new model serves</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Data drift vs concept drift - and how to detect them<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Data drift:</strong> the inputs shift - new products, a seasonal catalog, a different traffic source. The relationship still holds, but the feature distribution moved. Detect by comparing this period's distribution to a reference (a population-stability index or a chi-square style check).</li>
+          <li><strong>Concept drift:</strong> user taste itself changes - what "relevant" means moves. Same inputs, different right answer. Detect it in the outcome metrics: precision@k and CTR sag even though inputs look stable.</li>
+          <li><strong>The rule of thumb:</strong> inputs moved is data drift; the target moved is concept drift. Both call for retraining, but concept drift often needs new features or a new label definition, not just fresh data.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>The feedback loop danger, and the guardrails<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Here is the trap that makes recsys different from ordinary ML: <strong>the model trains on data its own recommendations generated.</strong> If it recommends popular items, those get clicked more, so next training they look even more popular - a rich-get-richer spiral into popularity bias and filter bubbles. Left alone, variety collapses and discovery dies.</p>
+        <ul>
+          <li><strong>Diversity injection:</strong> deliberately mix in less-popular but relevant items so the catalog keeps breathing.</li>
+          <li><strong>Exploration:</strong> show a fraction of untested items to gather unbiased signal (the explore-vs-exploit trade).</li>
+          <li><strong>Business rules:</strong> hard constraints - never recommend out-of-stock, respect suitability and consent, cap any single category's share of a rail.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>Accuracy is not the only goal</strong>
+          A recommender optimized purely for next-click CTR will happily build a filter bubble. Guardrails - diversity, exploration, business rules - are how you keep it useful, fair, and honest, not just accurate. This is the ethics rail from a5/a6 made operational.
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Retraining cadence + the A/B gate<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>How often to retrain is a cost-versus-freshness call: nightly or weekly for fast catalogs, monthly for stable ones, or event-triggered when a drift alert fires. But cadence only decides <em>when you try</em> - not what ships. Every change passes the same gate:</p>
+        <div class="steps">
+          <div class="step"><p><strong>Offline gate:</strong> the candidate must beat the current model on b8 metrics (precision@k, NDCG) on held-out data. Fail here and it never reaches users.</p></div>
+          <div class="step"><p><strong>Online A/B test:</strong> split live traffic, measure the primary business metric (conversion, revenue per session) on the real rail.</p></div>
+          <div class="step"><p><strong>Ship rule:</strong> promote only if the primary metric wins <em>and</em> the guardrails hold (diversity did not collapse, no rule violated). Otherwise roll back.</p></div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO 1 ============ -->
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Demo 1 of 2</span>
+      <h2>A rolling-CTR monitor that alerts <span class="tag demo">★ 11 min · everyone builds</span></h2>
+    </div>
+    <p class="lede">From a served-and-clicked log, compute a rolling daily CTR and flag the moment it drops below your threshold - the first line of defence against a silent decay.</p>
+
+    <div class="steps">
+      <div class="step"><p>Take an event log of impressions served and clicks received, one row per day.</p></div>
+      <div class="step"><p>Compute daily CTR, then a rolling 3-day average to smooth the noise.</p></div>
+      <div class="step"><p>Compare the latest rolling value to a threshold and raise an alert when it breaks.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - rolling CTR monitor + alert</span>import pandas as pd
+
+# Kirana rec-rail log: impressions served and clicks, per day
+log = pd.DataFrame({
+    "day":     ["d1","d2","d3","d4","d5","d6","d7"],
+    "served":  [1000, 1000, 1050, 1000, 1100, 1000, 1050],
+    "clicked": [ 42,   41,   42,   38,   37,   30,   27 ],
+})
+
+log["ctr"] = log["clicked"] / log["served"]
+log["ctr_roll3"] = log["ctr"].rolling(3).mean()      # smooth daily noise
+
+THRESHOLD = 0.030                                    # 3.0% rolling CTR floor
+latest = log["ctr_roll3"].iloc[-1]
+
+print(log[["day", "ctr", "ctr_roll3"]].round(4))
+if latest &lt; THRESHOLD:
+    print(f"ALERT: rolling CTR {latest:.2%} is below floor {THRESHOLD:.1%}")
+else:
+    print(f"OK: rolling CTR {latest:.2%} healthy")</div>
+
+    <div class="callout tip">
+      <strong>Smooth before you alert</strong>
+      Raw daily CTR is noisy - a single quiet day should not page anyone. Rolling the metric over a few days catches a real trend while ignoring the wobble, so your alerts mean something. Same idea scales to conversion and revenue per session.
+    </div>
+  </section>
+
+  <!-- ============ DEMO 2 ============ -->
+  <section class="section" id="demo-2">
+    <div class="section-kicker">
+      <span class="klabel">Demo 2 of 2</span>
+      <h2>A drift detector on the recommended-item mix <span class="tag demo">★ 11 min · build your own</span></h2>
+    </div>
+    <p class="lede">CTR tells you <em>that</em> something dropped; a drift check helps tell you <em>why</em>. Compare the distribution of recommended items this week against last week with a population-stability index, and alert when the shift is large.</p>
+
+    <div class="steps">
+      <div class="step"><p>Count how often each item was recommended last week vs this week, and turn the counts into proportions.</p></div>
+      <div class="step"><p>Compute the population-stability index (PSI) across the item categories.</p></div>
+      <div class="step"><p>Apply the standard bands: below 0.1 stable, 0.1 to 0.25 moderate, above 0.25 significant drift - alert.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - PSI drift detector</span>import numpy as np, pandas as pd
+
+# how often each item was recommended, last week vs this week
+last = pd.Series({"Yoga Mat": 400, "Protein": 300, "Dumbbells": 200,
+                  "Blender": 60,  "Cookbook": 40})
+this = pd.Series({"Yoga Mat": 640, "Protein": 300, "Dumbbells": 120,
+                  "Blender": 25,  "Cookbook": 15})   # popularity creeping in
+
+eps  = 1e-6
+p = (last / last.sum()).clip(lower=eps)     # reference distribution
+q = (this / this.sum()).clip(lower=eps)     # current distribution
+
+# Population Stability Index: sum( (q - p) * ln(q / p) )
+psi = float(((q - p) * np.log(q / p)).sum())
+print(f"PSI = {psi:.3f}")
+
+if psi &gt; 0.25:
+    print("ALERT: significant drift - recommended-item mix shifted. Investigate.")
+elif psi &gt; 0.10:
+    print("WATCH: moderate drift.")
+else:
+    print("OK: distribution stable.")</div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>This is the feedback loop caught in the act.</strong> The mix tilting hard toward "Yoga Mat" is exactly the popularity spiral from Part 2 - the model over-recommending its own winners. A rising PSI on the recommended-item distribution is an early warning that variety is collapsing, often before CTR fully reacts. That is your cue to check the diversity guardrail and consider retraining.</p>
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 30-45 min total</span></h2>
+    </div>
+    <ul>
+      <li>Run the CTR monitor on your own served/clicked log, tune the threshold to your traffic, and confirm it alerts on a seeded drop.</li>
+      <li>Compute PSI on your recommended-item distribution across two periods; interpret the band and say whether it is data or concept drift.</li>
+      <li>Add one guardrail to a recommender you built earlier (diversity injection or a business rule) and note how the recommendations change.</li>
+      <li>Write your retraining and A/B policy in five lines: cadence, offline gate, primary online metric, guardrail checks, rollback trigger.</li>
+      <li>Trace the full loop for Kirana end to end - basket analysis (b2) to serving (b9) to this monitor - in a short diagram of your own.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">Taught from widely adopted monitoring practice and the recsys evaluation canon, with the ethics rails cited. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Performance monitoring, drift detection, retraining, A/B gating (industry MLOps practice)</span><span class="note">Parts 1-2 + demos · CTR/precision@k monitoring, PSI drift, the ship gate</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Feedback loops, popularity bias, diversity guardrails (recsys ethics canon)</span><span class="note">Part 2 · why accuracy alone builds filter bubbles; guardrails as the fix</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Precision@k / offline-vs-online evaluation (eval canon, from b8)</span><span class="note">Part 1 · the b8 metrics, run continuously on fresh data</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · Inputs shift (new products, seasonal catalog) but the underlying relationship holds. That is...</p>
+      <button class="qopt" type="button">A · Concept drift - user taste itself changed</button>
+      <button class="qopt" type="button">B · A feedback loop</button>
+      <button class="qopt" type="button">C · Data drift - the feature distribution moved; detect by comparing distributions (e.g. PSI)</button>
+      <p class="qwhy">Inputs moved = data drift. Target/taste moved = concept drift. Data drift is caught by comparing this period's distribution to a reference.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">2 · Why is the feedback loop uniquely dangerous in recsys?</p>
+      <button class="qopt" type="button">A · The model trains on data its own recs generated, so popular items get recommended, clicked, and then look even more popular - a spiral into popularity bias and filter bubbles</button>
+      <button class="qopt" type="button">B · It makes training slower</button>
+      <button class="qopt" type="button">C · It only affects explicit-feedback systems</button>
+      <p class="qwhy">Recs shape the very behaviour you train on next. Guardrails - diversity injection, exploration, business rules - keep variety alive instead of collapsing it.</p>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">3 · A retrained model beats the current one on offline precision@k. Does it ship?</p>
+      <button class="qopt" type="button">A · Yes, immediately - offline is the final word</button>
+      <button class="qopt" type="button">B · Only after it also wins an online A/B on the primary business metric AND the guardrails hold</button>
+      <button class="qopt" type="button">C · No - offline metrics are meaningless</button>
+      <p class="qwhy">Offline is the gate to reach traffic; online A/B on the real rail is the decider. Ship only if the primary metric wins and diversity/rules hold - else roll back.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Builder track wrap-up cheat sheet <span>· the whole journey</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>The arc you built</b><span>matrix (b1) → basket (b2) → item-item &amp; user-user CF (b3-b4) → content (b5) → matrix factorization (b6) → deep (b7) → evaluate (b8) → serve (b9) → monitor (b10).</span></div>
+      <div class="cheat-item"><b>Monitor two layers</b><span>business (CTR, conversion, revenue/session) + model quality (precision@k on fresh data). Alert on thresholds, do not just chart.</span></div>
+      <div class="cheat-item"><b>Data vs concept drift</b><span>inputs moved = data drift (compare distributions, PSI); taste moved = concept drift (outcome metrics sag). Both trigger retraining.</span></div>
+      <div class="cheat-item"><b>Feedback loop trap</b><span>the model trains on its own recs' data → popularity bias, filter bubbles. Left alone, variety collapses.</span></div>
+      <div class="cheat-item"><b>Guardrails</b><span>diversity injection, exploration, business rules. Accuracy alone builds a bubble - guardrails keep it useful and fair.</span></div>
+      <div class="cheat-item"><b>Retraining cadence</b><span>nightly/weekly for fast catalogs, monthly for stable, or drift-triggered. Cadence decides when you try, not what ships.</span></div>
+      <div class="cheat-item"><b>The ship gate</b><span>offline gate (beat b8 metrics) → online A/B → ship only if the primary metric wins AND guardrails hold. Else roll back.</span></div>
+      <div class="cheat-item"><b>The loop closes</b><span>serve → log → monitor → retrain → serve, forever. The loop the analyst's first pivot table in b2 was always heading toward.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Builder session 10 of 10 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="../index.html">← Back to all sessions</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

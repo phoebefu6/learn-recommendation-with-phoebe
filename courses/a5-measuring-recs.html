@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leader session 5 · Measuring recommendations - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Leader session 5 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Leader track · Session 5 of 6</div>
+    <h1>Measuring recommendations: <span class="accent">the numbers that actually matter</span></h1>
+    <p class="sub">A recommender is only as good as the metric you judge it by - and the wrong metric will happily reward a model that quietly hurts the business. This session gives you a leader's map of the scoreboard: the offline metrics the data science team uses in the lab, the online metrics the real world reports back, why the A/B test is the final arbiter, and the guardrails that stop a click-through win from hiding real harm.</p>
+    <div class="chip-row">
+      <span class="chip level">🟡 Leader track</span>
+      <span class="chip audience">Leaders: PM · biz · product</span>
+      <span class="chip audience">No code · concepts + decisions</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-15 · Offline: the lab test</span>
+      <span class="a3" style="flex:4">15-30 · Online + the A/B test</span>
+      <span class="a4" style="flex:3">30-45 · Guardrails + the loop</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Why measurement is a leadership problem</h2>
+    </div>
+    <p class="lede">Anyone can ship a recommender. The hard part - and the part that is genuinely a leader's call, not the algorithm's - is deciding what "better" means before you build. Pick the wrong number and your team will optimise it beautifully, all the way to a worse business. This session is the shared language you need to read a recommender's scorecard and ask the right questions, without a line of code.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A three-rung mental model of recommender metrics - offline, online, business - and why higher rungs matter more. The knowledge that offline scores only shortlist candidates and the A/B test decides. And the guardrail habit: never approve a launch on one headline metric alone.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: OFFLINE METRICS ============ -->
+  <section class="section" id="offline">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers offline evaluation (the lab test)</span>
+      <h2>Offline metrics: the data scientist's lab test <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">Before anything touches a real customer, the team scores a model on historical data it has already collected. These offline metrics ask one question: <strong>did we rank the right items near the top?</strong> They are fast and cheap, so the team can compare dozens of models overnight. They are useful, but they are not the truth.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The metric ladder: offline metrics at the bottom, online metrics in the middle, business metrics at the top, rising toward money">
+        <style>
+          .a5mT { font: 700 15px Inter, sans-serif; fill: #FFFFFF; }
+          .a5mTi { font: 700 15px Inter, sans-serif; fill: #111634; }
+          .a5mX { font: 400 12px Inter, sans-serif; fill: #DCE6FB; }
+          .a5mXi { font: 400 12px Inter, sans-serif; fill: #5B6480; }
+          .a5mN { font: 600 13.5px Inter, sans-serif; fill: #6B0F3F; }
+          .a5mK { font: 700 11px Inter, sans-serif; fill: #2563EB; }
+        </style>
+        <!-- rung 1 offline -->
+        <rect x="24" y="200" width="256" height="94" rx="12" fill="#1E3A8A"/>
+        <text class="a5mK" x="44" y="192" fill="#5B6480">RUNG 1 · the lab</text>
+        <text class="a5mT" x="44" y="232">Offline metrics</text>
+        <text class="a5mX" x="44" y="256">precision@k · recall@k · NDCG</text>
+        <text class="a5mX" x="44" y="278">"did we rank the right items?"</text>
+        <!-- rung 2 online -->
+        <rect x="312" y="130" width="256" height="94" rx="12" fill="#2563EB"/>
+        <text class="a5mK" x="332" y="122" fill="#5B6480">RUNG 2 · live traffic</text>
+        <text class="a5mT" x="332" y="162">Online metrics</text>
+        <text class="a5mX" x="332" y="186">CTR · conversion · retention</text>
+        <text class="a5mX" x="332" y="208">"did real people act on them?"</text>
+        <!-- rung 3 business -->
+        <rect x="600" y="60" width="256" height="94" rx="12" fill="#60A5FA"/>
+        <text class="a5mK" x="620" y="52" fill="#5B6480">RUNG 3 · the P&amp;L</text>
+        <text class="a5mTi" x="620" y="92">Business metrics</text>
+        <text class="a5mXi" x="620" y="116">revenue-per-session · LTV</text>
+        <text class="a5mXi" x="620" y="138">"did it grow the business?"</text>
+        <!-- connectors -->
+        <path d="M280 224 L312 200" stroke="#C7D2E4" stroke-width="2.5" fill="none"/>
+        <path d="M568 154 L600 130" stroke="#C7D2E4" stroke-width="2.5" fill="none"/>
+        <!-- bottom note -->
+        <rect x="24" y="308" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="a5mN" x="48" y="320">Higher rung = closer to money and harder to fake. Offline shortlists; online and business decide.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the metric ladder: offline shortlists candidates, online and business have the final word</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The three offline metrics, in one sentence each<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>You do not need the formulas. You need to know what each one is trying to protect:</p>
+        <ul>
+          <li><strong>Precision@k</strong> - of the top <em>k</em> items we recommended, what share were actually good? It punishes putting junk in a short, precious list of slots.</li>
+          <li><strong>Recall@k</strong> - of everything the user would have liked, how much did we manage to surface in the top <em>k</em>? It punishes missing things they wanted.</li>
+          <li><strong>NDCG</strong> - "did we rank the right items <em>near the top</em>?" It rewards putting the best item at position 1, not position 8, because in a real feed almost no one scrolls.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>Why offline is not the truth</strong>
+          Offline scores are computed on the past - on behaviour the old system already shaped. A model can win offline by predicting what people did anyway, then flop live because it never shows anyone anything new. Treat offline metrics as a shortlist, never as the verdict.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: ONLINE METRICS ============ -->
+  <section class="section" id="online">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers online evaluation (the real scoreboard)</span>
+      <h2>Online metrics: the real scoreboard <span class="tag concept">4 min live</span></h2>
+    </div>
+    <p class="lede">Online metrics are measured on live traffic, with real customers reacting to real recommendations. This is where a model earns or loses its keep. The lab can only predict; the market reports.</p>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The metrics your dashboards already speak<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <table class="clean">
+          <thead><tr><th>Metric</th><th>What it tells you</th><th>Watch out for</th></tr></thead>
+          <tbody>
+            <tr><td>Click-through rate (CTR)</td><td>Did the recommendation catch the eye?</td><td>Clickbait clicks; a click is not a good outcome</td></tr>
+            <tr><td>Conversion</td><td>Did the click turn into a purchase / play / sign-up?</td><td>Closer to value, but can cannibalise sales you would have made anyway</td></tr>
+            <tr><td>Revenue-per-session</td><td>Did the session make more money?</td><td>The honest money metric; can hide margin and returns</td></tr>
+            <tr><td>Retention / engagement</td><td>Did they come back, and stay?</td><td>The long game; slow to read, easy to ignore under quarterly pressure</td></tr>
+          </tbody>
+        </table>
+        <p>Notice the tension: CTR is fast and easy to move, revenue and retention are slow and hard to move - and it is the slow ones that pay salaries. A leader's job is to keep the team honest about which they are really optimising.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Netflix moved the goalposts on purpose.</strong> In its "Netflix Recommendations: Beyond the 5 Stars" TechBlog framing, Netflix describes shifting away from predicting the star rating you would give a title - the rating-error target of the old Netflix Prize - toward whether recommendations actually drive engagement: what members play, keep watching, and come back for. The stated framing is that the homepage is heavily personalised and recommendations shape a large share of what gets watched. The lesson for you: the metric that made the algorithm famous (rating accuracy) was not the metric that ran the business (engagement).</p>
+    </div>
+  </section>
+
+  <!-- ============ PART 3: THE A/B TEST ============ -->
+  <section class="section" id="abtest">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · covers online testing + guardrails</span>
+      <h2>The A/B test is the arbiter <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">Offline metrics pick the candidates. The A/B test decides the winner. You split live traffic, show the current recommender to one group (control) and the new one to another (variant), and read the metrics that come back. Nothing ships on a lab score alone.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An A/B test: live traffic split into control and variant, judged on a primary metric plus diversity, revenue, and complaint-rate guardrails; ship only if the variant wins the primary and holds the guardrails">
+        <style>
+          .a5aT { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+          .a5aTi { font: 700 14px Inter, sans-serif; fill: #111634; }
+          .a5aX { font: 400 11.5px Inter, sans-serif; fill: #DCE6FB; }
+          .a5aXi { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
+          .a5aN { font: 600 13.5px Inter, sans-serif; fill: #6B0F3F; }
+          .a5aH { font: 700 13px Inter, sans-serif; fill: #111634; }
+        </style>
+        <!-- traffic pill -->
+        <rect x="260" y="18" width="360" height="34" rx="17" fill="#1E3A8A"/>
+        <text class="a5aT" x="288" y="40">Live traffic - random 50 / 50 split</text>
+        <!-- control / variant -->
+        <rect x="90" y="94" width="300" height="60" rx="12" fill="#60A5FA"/>
+        <text class="a5aTi" x="112" y="120">Control (A)</text>
+        <text class="a5aXi" x="112" y="140">the recommender you run today</text>
+        <rect x="490" y="94" width="300" height="60" rx="12" fill="#2563EB"/>
+        <text class="a5aT" x="512" y="120">Variant (B)</text>
+        <text class="a5aX" x="512" y="140">the new model on trial</text>
+        <path d="M400 52 L240 94" stroke="#C7D2E4" stroke-width="2.5" fill="none"/>
+        <path d="M480 52 L640 94" stroke="#C7D2E4" stroke-width="2.5" fill="none"/>
+        <!-- primary metric bar -->
+        <rect x="90" y="188" width="700" height="46" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="a5aH" x="112" y="216">Primary metric: conversion / revenue-per-session - B must WIN this</text>
+        <!-- guardrail tiles -->
+        <rect x="90" y="256" width="220" height="52" rx="10" fill="#FCE7F3" stroke="#DB2777"/>
+        <text class="a5aH" x="112" y="280">Diversity</text><text class="a5aXi" x="112" y="298">not too narrow</text>
+        <rect x="330" y="256" width="220" height="52" rx="10" fill="#FCE7F3" stroke="#DB2777"/>
+        <text class="a5aH" x="352" y="280">Revenue</text><text class="a5aXi" x="352" y="298">no hidden loss</text>
+        <rect x="570" y="256" width="220" height="52" rx="10" fill="#FCE7F3" stroke="#DB2777"/>
+        <text class="a5aH" x="592" y="280">Complaint rate</text><text class="a5aXi" x="592" y="298">stays low</text>
+        <!-- bottom note -->
+        <rect x="90" y="336" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="a5aN" x="114" y="348">Ship only if B wins the primary AND holds every guardrail. One number is never enough.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the A/B test: primary metric to win, guardrail metrics to hold, before anything ships</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Guardrail metrics: how a "win" can still be a loss<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>A single headline metric is dangerous because a model can move it by doing something you would never approve if you saw it. Guardrail metrics are the second set of numbers you insist hold steady even when the primary goes up:</p>
+        <ul>
+          <li><strong>Diversity</strong> - is the model showing a healthy spread, or the same three bestsellers to everyone? A CTR win built on narrowing is a slow poison.</li>
+          <li><strong>Revenue / margin</strong> - did conversions go up while the money went down, because it pushed cheap or heavily-returned items?</li>
+          <li><strong>Complaint / unsubscribe / return rate</strong> - the customer's own alarm. If it rises, the "win" is borrowed against trust.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>The classic trap.</strong> A new model lifts click-through by five percent and the team wants to ship. On the guardrails, complaint rate has crept up and the recommendations have collapsed onto a handful of popular items. The CTR win was real; it was also hiding harm. The guardrails are what let a leader say "not yet" with evidence, not a hunch.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 4: THE FEEDBACK LOOP ============ -->
+  <section class="section" id="loop">
+    <div class="section-kicker">
+      <span class="klabel">Part 4 · covers the feedback loop caution</span>
+      <h2>The trap under every metric: the feedback loop <span class="tag concept">3 min live</span></h2>
+    </div>
+    <p class="lede">Here is the subtle part no dashboard warns you about. A recommender does not just measure behaviour - it <strong>shapes the very behaviour you are measuring</strong>. If you only ever show popular items, they get more clicks, which proves they are popular, which makes you show them more. The metric looks great while the experience quietly narrows.</p>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Popularity bias and the filter bubble<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Popularity bias</strong> - the loop above. Popular items win attention simply because they were shown, not because they were best for this user. Left unchecked, the catalogue's long tail dies.</li>
+          <li><strong>Filter bubble / over-narrowing</strong> - personalise hard enough and you keep showing people more of exactly what they already engaged with, until discovery stops and the world shrinks to a corridor.</li>
+          <li><strong>Why it hides from your metrics</strong> - both of these can make short-term CTR and conversion look <em>better</em>, which is exactly why diversity has to be a standing guardrail, not a nice-to-have you check once.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>The leader's reflex</strong>
+          When a metric jumps, ask "what behaviour did we cause to make this move?" before you celebrate. Deliberately inject some diversity and exploration so the system keeps learning about the whole catalogue and the whole customer - not just the corridor it already dug.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ WALK-THROUGH ============ -->
+  <section class="section" id="walkthrough">
+    <div class="section-kicker">
+      <span class="klabel">Walk-through · read a scorecard together</span>
+      <h2>Reading a recommender's scorecard <span class="tag demo">◆ 8 min · think it through</span></h2>
+    </div>
+    <p class="lede">No code - just the decision you will actually make. Picture the launch review for a new recommender on your store. Walk the numbers in order and decide: ship, hold, or send back.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>Start offline.</strong> The team reports the new model beat the old one on NDCG in the lab. Good - but this only earns it a seat in the A/B test. It is a candidate, not a winner.</p></div>
+      <div class="step"><p><strong>Read the primary online metric.</strong> In the A/B test, revenue-per-session is up two percent on the variant, and the result is statistically stable. That is the number you agreed up front would decide it.</p></div>
+      <div class="step"><p><strong>Check every guardrail before you smile.</strong> Diversity is holding, complaint rate is flat - but average margin has dropped, because the model leans on discounted items. The primary won; a guardrail broke.</p></div>
+      <div class="step"><p><strong>Decide with evidence.</strong> Send it back with a specific ask: keep the revenue lift, but add a margin guardrail to the objective. That is a leader using metrics to steer, not a leader being steered by a single green number.</p></div>
+    </div>
+
+    <div class="callout win">
+      <strong>The habit to keep</strong>
+      Agree the primary metric and the guardrails <em>before</em> the test runs, in writing. It turns launch reviews from opinion contests into evidence reviews - and it stops a good click-through number from smuggling a bad outcome past you.
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 20-30 min total</span></h2>
+    </div>
+    <ul>
+      <li>Pick a recommender you personally use (a shop, a streaming app, a music feed). Name <strong>one offline metric</strong> it likely optimises in the lab (precision@k, recall@k, or NDCG) and say why.</li>
+      <li>Name <strong>one online metric</strong> it is almost certainly judged on in production (CTR, conversion, revenue-per-session, or retention).</li>
+      <li>Name <strong>one guardrail</strong> it should be watching so a headline win does not hide harm (diversity, margin, complaint or return rate).</li>
+      <li>Write one sentence describing a feedback loop you can feel in that product - somewhere it keeps showing you more of what you already engaged with.</li>
+      <li>Optional: skim the Netflix "Beyond the 5 Stars" TechBlog post and note where they say the goal moved from rating accuracy to engagement.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">Taught from the industry's own framing and the recommender-evaluation canon. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Netflix - "Netflix Recommendations: Beyond the 5 Stars," Netflix TechBlog</span><span class="note">Part 2 · the stated shift from rating-error (RMSE) to engagement / ranking</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Recommender-evaluation canon (Aggarwal 2016; Ricci et al. handbook)</span><span class="note">Parts 1-3 · precision@k, recall@k, NDCG; offline vs online; A/B testing</span></div>
+    </div>
+    <p class="lede" style="margin-top:14px">Honesty note: Netflix, Amazon and Alibaba run far larger measurement stacks than a 45-minute session teaches. We cover the published framing and the standard metric families, and we quote Netflix's stated direction rather than any hard, dated "percent of viewing" number.</p>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · What is the honest role of offline metrics like NDCG?</p>
+      <button class="qopt" type="button">A · They are the final verdict on whether to ship</button>
+      <button class="qopt" type="button">B · They measure live customer behaviour</button>
+      <button class="qopt" type="button">C · They shortlist candidate models cheaply in the lab; the A/B test decides the winner</button>
+      <p class="qwhy">Offline metrics run on past data the old system already shaped. They are a fast, cheap shortlist - useful, but not the truth. Online results have the final word.</p>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">2 · A new model lifts CTR by five percent. What must you check before shipping?</p>
+      <button class="qopt" type="button">A · Nothing - a CTR win is a win</button>
+      <button class="qopt" type="button">B · The guardrail metrics - diversity, revenue / margin, complaint rate - to be sure the win is not hiding harm</button>
+      <button class="qopt" type="button">C · Only the offline NDCG score</button>
+      <p class="qwhy">One headline metric can be moved by behaviour you would never approve. Guardrails are the second set of numbers that must hold steady even when the primary goes up.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · Why is the recommender feedback loop a trap for measurement?</p>
+      <button class="qopt" type="button">A · The recommender shapes the very behaviour you measure, so popularity bias and filter bubbles can make short-term metrics look better while the experience narrows</button>
+      <button class="qopt" type="button">B · Metrics are always wrong</button>
+      <button class="qopt" type="button">C · Feedback loops only affect the lab, never live traffic</button>
+      <p class="qwhy">Show popular items, they get more clicks, which "proves" they are popular. The metric looks great while diversity dies - which is why diversity must be a standing guardrail.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Leader session 5 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>The metric ladder</b><span>offline (lab) -> online (live traffic) -> business (revenue / LTV). Higher rung = closer to money, harder to fake.</span></div>
+      <div class="cheat-item"><b>Offline metrics</b><span>precision@k, recall@k, NDCG. "Did we rank the right items near the top?" Useful shortlist, not the truth.</span></div>
+      <div class="cheat-item"><b>Online metrics</b><span>CTR, conversion, revenue-per-session, retention. Measured on real customers - this is where a model earns its keep.</span></div>
+      <div class="cheat-item"><b>The A/B test decides</b><span>offline picks candidates; the live split picks the winner. Nothing ships on a lab score alone.</span></div>
+      <div class="cheat-item"><b>Primary + guardrails</b><span>agree the primary metric AND the guardrails (diversity, margin, complaint rate) in writing before the test runs.</span></div>
+      <div class="cheat-item"><b>The feedback loop</b><span>recs shape the behaviour you measure. Watch popularity bias and filter bubbles - they flatter short-term metrics.</span></div>
+      <div class="cheat-item"><b>Netflix's shift</b><span>the field moved beyond predicting the star rating (RMSE) toward engagement and ranking - the metric that ran the business.</span></div>
+      <div class="cheat-item"><b>Next session</b><span>a6 - strategy, ethics, and a roadmap you can actually run (the leader capstone).</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Leader session 5 of 6 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="a6-strategy-ethics-roadmap.html">Next: Strategy, ethics &amp; roadmap →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

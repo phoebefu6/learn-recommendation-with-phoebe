@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder session 6 · Matrix factorization &amp; latent factors - learn recommendation systems with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-recommendation-with-phoebe</a> / Builder session 6 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Recommendation Systems with Phoebe · Builder track · Session 6 of 10</div>
+    <h1>Matrix factorization: <span class="accent">the latent factors behind the Netflix Prize</span></h1>
+    <p class="sub">Neighbourhood methods compare rows or columns directly. Matrix factorization does something deeper: it decomposes the sparse interaction matrix R into two skinny matrices - one for users, one for items - so that R ≈ U·Vᵀ. The shared inner dimension is a set of hidden taste dimensions, latent factors, and a prediction is just the dot product of a user vector and an item vector. This is the idea that won the Netflix Prize. Tonight you factor Kirana's matrix with SVD, then handle implicit feedback with ALS.</p>
+    <div class="chip-row">
+      <span class="chip level">🟠 Builder track</span>
+      <span class="chip audience">Practitioners: analysts · data scientists · engineers</span>
+      <span class="chip audience">Python 3.10+ · a notebook</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Recap</span>
+      <span class="a2" style="flex:4">3-18 · Latent factors + SVD vs ALS</span>
+      <span class="a3" style="flex:5">18-42 · Build-along: SVD + implicit ALS</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Where this sits</h2>
+    </div>
+    <p class="lede">Content-based (b5) read item features; collaborative filtering (b3, b4) compared users or items directly. Both stay on the surface of the matrix. Matrix factorization goes underneath it. It assumes the huge sparse matrix of who-interacted-with-what is really driven by a small number of hidden dimensions - a shopper's pull toward "fitness" or "value", an item's position on those same axes - and it learns those dimensions from the data alone. That is why it captures taste that neighbourhood methods miss. The cost: the factors are numeric and unnamed, so it is far less interpretable than the b5 profile you could read in plain words.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill peach">★ Run it now (Python)</span>
+      <span class="pill inkpill">Sources covered (cited)</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A working SVD factorization of Kirana's matrix into user and item latent-factor matrices, a reconstruction that reads off top predictions for a shopper, an implicit-feedback ALS model trained with the <code>implicit</code> library on a sparse CSR matrix, and a clear feel for why matrix factorization beat every neighbourhood method in the Netflix Prize - and where it stays weak.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: THE DECOMPOSITION ============ -->
+  <section class="section" id="decomp">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Koren, Bell &amp; Volinsky (2009)</span>
+      <h2>One big matrix, two skinny ones <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">The ratings/interaction matrix R is users x items and almost entirely blank. Matrix factorization finds two much smaller matrices - U (users x k) and V (items x k) - whose product reconstructs R and, crucially, fills the blanks. The k columns are the latent factors: learned taste dimensions nobody labelled.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 270" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A large sparse users-by-items matrix R is decomposed into a skinny users-by-k user-factor matrix and a skinny k-by-items item-factor matrix, so R is approximated by their product">
+        <style>
+          .b6dT { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .b6dH { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+          .b6dX { font: 400 12px Inter, sans-serif; fill: #DCE6FB; }
+          .b6dS { font: 700 22px Inter, sans-serif; fill: #5B6480; }
+          .b6dN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text class="b6dT" x="30" y="30">R (users x items, mostly blank)  ≈  U (users x k)  ·  Vᵀ (k x items)</text>
+        <!-- R -->
+        <rect x="40" y="56" width="180" height="150" rx="10" fill="#1E3A8A"/>
+        <text class="b6dH" x="96" y="126">R</text>
+        <text class="b6dX" x="70" y="150">sparse ratings</text>
+        <!-- approx sign -->
+        <text class="b6dS" x="238" y="140">≈</text>
+        <!-- U -->
+        <rect x="286" y="56" width="70" height="150" rx="10" fill="#2563EB"/>
+        <text class="b6dH" x="306" y="126">U</text>
+        <text class="b6dX" x="292" y="150">users</text>
+        <text class="b6dX" x="300" y="168">x k</text>
+        <!-- dot -->
+        <text class="b6dS" x="372" y="140">·</text>
+        <!-- V transpose -->
+        <rect x="400" y="96" width="180" height="70" rx="10" fill="#60A5FA"/>
+        <text class="b6dH" x="470" y="128" fill="#111634">Vᵀ</text>
+        <text class="b6dX" x="416" y="150" fill="#5B6480">k x items</text>
+        <!-- explainer -->
+        <rect x="616" y="56" width="240" height="150" rx="12" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b6dT" x="636" y="86">k = latent factors</text>
+        <text class="b6dT" x="636" y="112" fill="#5B6480" font-weight="400">Each user = k numbers.</text>
+        <text class="b6dT" x="636" y="132" fill="#5B6480" font-weight="400">Each item = k numbers.</text>
+        <text class="b6dT" x="636" y="158" fill="#2563EB">predict(u,i) =</text>
+        <text class="b6dT" x="636" y="178" fill="#2563EB">U[u] · V[i]</text>
+        <rect x="30" y="234" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b6dN" x="54" y="246">Two skinny matrices store the whole taste model - and predict every blank cell.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - R decomposes into a user-factor matrix and an item-factor matrix</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Latent factors, and prediction as a dot product<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The k columns are <strong>latent factors</strong> - hidden dimensions the model invents to explain the data. On the Netflix data, learned factors turned out to correspond loosely to things like "action vs romance" or "mainstream vs niche", even though nobody told the model those axes existed. Each user gets a coordinate on every factor; so does each item.</p>
+        <ul>
+          <li><strong>A user vector</strong> U[u] - how much this shopper leans toward each hidden dimension.</li>
+          <li><strong>An item vector</strong> V[i] - how much this item expresses each hidden dimension.</li>
+          <li><strong>The prediction</strong> is their dot product: U[u] · V[i]. High when a user's pulls line up with an item's expression. That single dot product replaces the whole neighbourhood search.</li>
+        </ul>
+        <p>Because the factors are learned jointly across all users and items, the model can connect a shopper to an item no similar shopper has touched - as long as their factor coordinates align. That is the taste-capturing power neighbourhood CF lacks. The price is interpretability: factor 3 is just a number, not "fitness".</p>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>The Netflix Prize (2006-2009).</strong> Netflix offered $1M to beat its rating predictor by 10%. Simon Funk's 2006 blog post popularized a gradient-descent SVD that climbed the leaderboard; Koren, Bell &amp; Volinsky's 2009 IEEE Computer paper made matrix factorization the field standard. The winning entry was an <em>ensemble</em> - matrix factorization plus restricted Boltzmann machines and more - so we teach the published MF core it was built on, not the full winning stack.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>SVD vs ALS, and confidence for implicit data<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Two routes to the same factorization, chosen by your data:</p>
+        <ul>
+          <li><strong>SVD (singular value decomposition)</strong> - the classic linear-algebra factorization. Clean and fast on a matrix you can hold in memory. In recsys, "SVD" usually means a version trained to fit only the observed entries (Funk's gradient-descent SVD), because a true SVD needs a full matrix.</li>
+          <li><strong>ALS (alternating least squares)</strong> - fix the item factors and solve for the user factors, then fix users and solve for items, and alternate. It parallelizes well and is the workhorse for large, implicit datasets.</li>
+        </ul>
+        <p>For <strong>implicit feedback</strong> (clicks, buys - no ratings), you cannot treat a blank as "disliked". The Hu, Koren &amp; Volinsky (2008) formulation adds a <strong>confidence weight</strong>: a blank is a low-confidence zero, a repeated purchase is a high-confidence one. The <code>implicit</code> library implements exactly this weighted ALS, which is why it expects a confidence-weighted sparse matrix, not a raw 0/1 grid.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: SHARED LATENT SPACE ============ -->
+  <section class="section" id="space">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers the latent-space intuition</span>
+      <h2>Users and items in one shared space <span class="tag concept">5 min live</span></h2>
+    </div>
+    <p class="lede">The real payoff of factorization is geometric: users and items land in the <em>same</em> k-dimensional space. A good recommendation is simply an item that sits close to the user in that space.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A shared two-dimensional latent space with a fitness axis and a kitchen axis; a shopper and fitness items cluster together while a kitchen item sits far away, so nearby items are recommended">
+        <style>
+          .b6sT { font: 700 13px Inter, sans-serif; fill: #111634; }
+          .b6sX { font: 400 12px Inter, sans-serif; fill: #5B6480; }
+          .b6sU { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .b6sN { font: 600 14px Inter, sans-serif; fill: #6B0F3F; }
+        </style>
+        <text class="b6sT" x="30" y="28">A 2-factor space: close = good match</text>
+        <!-- axes -->
+        <line x1="90" y1="250" x2="700" y2="250" stroke="#C7D2E4" stroke-width="2"/>
+        <line x1="90" y1="250" x2="90" y2="60" stroke="#C7D2E4" stroke-width="2"/>
+        <text class="b6sX" x="560" y="272">factor 1 · "fitness"</text>
+        <text class="b6sX" x="60" y="54">factor 2 · "kitchen"</text>
+        <!-- fitness cluster -->
+        <circle cx="520" cy="200" r="20" fill="#2563EB"/><text class="b6sU" x="500" y="204">You</text>
+        <circle cx="560" cy="220" r="16" fill="#60A5FA"/><text class="b6sX" x="580" y="224">Yoga Mat</text>
+        <circle cx="470" cy="175" r="16" fill="#60A5FA"/><text class="b6sX" x="360" y="179">Dumbbells</text>
+        <circle cx="590" cy="185" r="14" fill="#60A5FA"/><text class="b6sX" x="608" y="189">Protein</text>
+        <!-- kitchen item far -->
+        <circle cx="180" cy="110" r="16" fill="#FCE7F3" stroke="#DB2777"/><text class="b6sX" x="200" y="114">Blender</text>
+        <!-- match arrow -->
+        <line x1="522" y1="198" x2="556" y2="216" stroke="#2563EB" stroke-width="2" stroke-dasharray="4 3"/>
+        <rect x="620" y="70" width="236" height="86" rx="12" fill="#EFF6FF" stroke="#BFDBFE"/>
+        <text class="b6sT" x="638" y="98">You sit among the fitness</text>
+        <text class="b6sT" x="638" y="118">items -&gt; recommend those.</text>
+        <text class="b6sX" x="638" y="140">Blender is far -&gt; skip it.</text>
+        <rect x="30" y="278" width="14" height="14" rx="3" fill="#DB2777"/>
+        <text class="b6sN" x="54" y="290">The axes are learned, not labelled - "fitness" here is just our read of factor 1.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - users and items share one latent space; nearby items are the recommendations</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Why it captures taste neighbourhood CF misses<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>User-user CF (b4) can only connect you to items via people who overlap with you on actual purchases. If nobody with your exact history bought an item, it stays invisible. Matrix factorization has no such gap: it compresses everyone into shared factors, so it can predict that you will like an item because your <em>factor coordinates</em> line up with the item's - even with zero overlapping neighbours. It also handles sparsity gracefully, because it explains millions of cells with a few factors per row.</p>
+        <div class="callout tip">
+          <strong>Powerful, but not a free lunch</strong>
+          Matrix factorization still cold-starts badly on brand-new users and items with no interactions (no data to learn their factors from - that is where b5's content-based layer helps), and the factors are not human-readable, so "why was this recommended?" is harder to answer than with content-based. Pick it for accuracy on warm data, pair it with content-based for cold-start and explainability.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO 1 ============ -->
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Demo 1 of 2</span>
+      <h2>Factor the matrix with SVD <span class="tag demo">★ 12 min · everyone builds</span></h2>
+    </div>
+    <p class="lede">Use <code>scipy.sparse.linalg.svds</code> to decompose Kirana's <code>mat</code> into user and item latent factors, reconstruct the matrix, and read off the top predictions for a shopper.</p>
+
+    <div class="steps">
+      <div class="step"><p>Start from the users x items matrix <code>mat</code> you built in b1 (1 = interacted).</p></div>
+      <div class="step"><p>Run <code>svds</code> with a small k to get user factors, singular values, and item factors.</p></div>
+      <div class="step"><p>Reconstruct R ≈ U·Σ·Vᵀ - the dense score matrix with the blanks now filled.</p></div>
+      <div class="step"><p>For one user, mask items they already have and take the highest reconstructed scores.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - SVD latent factors + top predictions</span>import pandas as pd, numpy as np
+from scipy.sparse.linalg import svds
+
+# Kirana users x items matrix (implicit 1 = interacted), from b1
+mat = pd.DataFrame(
+    [[1,1,0,0,1],
+     [1,1,1,0,0],
+     [0,1,1,1,0],
+     [0,0,1,1,1],
+     [1,0,0,1,1]],
+    index=["u1","u2","u3","u4","u5"],
+    columns=["Yoga Mat","Dumbbells","Protein","Blender","Cookbook"],
+)
+
+R = mat.values.astype(float)
+k = 2                                         # latent factors
+U, sigma, Vt = svds(R, k=k)                   # U:users x k, Vt:k x items
+scores = U @ np.diag(sigma) @ Vt              # reconstructed R (blanks filled)
+
+def recommend(user, n=2):
+    u = mat.index.get_loc(user)
+    seen = R[u] &gt; 0
+    ranked = np.argsort(np.where(seen, -np.inf, scores[u]))[::-1]
+    return mat.columns[ranked][:n].tolist()
+
+print("u1 latent factors:", U[0].round(2))
+print("Recommend for u1: ", recommend("u1"))</div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Two numbers now stand in for a whole shopper.</strong> <code>U[0]</code> is u1's entire taste, compressed to k values, and every recommendation is a dot product away. On real data you would use <code>TruncatedSVD</code> from scikit-learn or a dedicated MF library and tune k by validation - too small underfits taste, too large overfits noise.</p>
+    </div>
+  </section>
+
+  <!-- ============ DEMO 2 ============ -->
+  <section class="section" id="demo-2">
+    <div class="section-kicker">
+      <span class="klabel">Demo 2 of 2</span>
+      <h2>Implicit-feedback ALS with <code>implicit</code> <span class="tag demo">★ 10 min · build your own</span></h2>
+    </div>
+    <p class="lede">Kirana's data is implicit - buys and clicks, no ratings. Train weighted ALS with the <code>implicit</code> library on a sparse CSR matrix, then ask it to <code>recommend</code> for a user. Note the key contract: <code>implicit</code> expects a <em>confidence-weighted</em> sparse matrix, not a raw 0/1 grid.</p>
+
+    <div class="steps">
+      <div class="step"><p>Convert <code>mat</code> to a sparse CSR matrix and scale it into a confidence matrix (higher weight = stronger signal).</p></div>
+      <div class="step"><p>Fit <code>AlternatingLeastSquares</code> with a small number of factors.</p></div>
+      <div class="step"><p>Call <code>recommend</code> for a user, filtering items they already have.</p></div>
+      <div class="step"><p>Map the returned item indices back to names.</p></div>
+    </div>
+
+    <div class="prompt-box good"><span class="label">★ Run it now (Python) - weighted ALS on a sparse matrix</span># pip install implicit scipy
+import numpy as np
+from scipy.sparse import csr_matrix
+from implicit.als import AlternatingLeastSquares
+
+# users x items -&gt; sparse; scale to CONFIDENCE (implicit expects weights, not 0/1)
+alpha = 40.0
+user_items = csr_matrix(mat.values.astype(float) * alpha)
+
+model = AlternatingLeastSquares(factors=2, regularization=0.05,
+                                iterations=15, random_state=0)
+model.fit(user_items)                          # learns user + item factors
+
+uid = mat.index.get_loc("u1")
+ids, scores = model.recommend(uid, user_items[uid],
+                              N=2, filter_already_liked_items=True)
+print("ALS recommends for u1:", [mat.columns[i] for i in ids])</div>
+
+    <div class="callout tip">
+      <strong>Confidence is the whole point of implicit ALS</strong>
+      The <code>alpha</code> scaling turns a bare "interacted / did not" into "how sure are we this is a positive signal". A blank stays a zero but a low-confidence one, so the model is free to score it high if the factors say so. Skip the weighting and you are back to treating every blank as a hard dislike - which is wrong for implicit data. This is the Hu, Koren &amp; Volinsky (2008) formulation that <code>implicit</code> implements.
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 30-45 min total</span></h2>
+    </div>
+    <ul>
+      <li>Factor your own interaction matrix with <code>svds</code> at k = 2, 5, 10. Watch how the recommendations shift as you add factors.</li>
+      <li>Print one user's factor vector and one item's. Compute their dot product by hand and confirm it matches the reconstructed score.</li>
+      <li>Train <code>implicit</code> ALS on the same data with a confidence-weighted CSR matrix and compare its top-N against SVD's. Where do they agree?</li>
+      <li>Take a brand-new user with no interactions and confirm matrix factorization cannot place them - then note how b5's content-based layer would cover that cold-start.</li>
+      <li>Optional: read Koren, Bell &amp; Volinsky (2009), "Matrix Factorization Techniques for Recommender Systems," IEEE Computer - the canonical write-up.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Sources covered (cited)</h2>
+    </div>
+    <p class="lede">Taught from the matrix-factorization canon and the Netflix Prize record. This session covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Koren, Bell &amp; Volinsky (2009), "Matrix Factorization Techniques for Recommender Systems," IEEE Computer</span><span class="note">Parts 1-2 · latent factors, dot-product prediction, SVD/ALS</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Funk (2006) SVD blog post; the Netflix Prize (SVD + RBM ensemble)</span><span class="note">Part 1 · framed honestly - the winning entry was an ensemble</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Hu, Koren &amp; Volinsky (2008) - implicit-feedback confidence-weighted ALS</span><span class="note">Demo 2 · what the <code>implicit</code> library implements</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · What does matrix factorization decompose the interaction matrix R into?</p>
+      <button class="qopt" type="button">A · One matrix of item tags</button>
+      <button class="qopt" type="button">B · Two skinny factor matrices - users x k and items x k - so R ≈ U·Vᵀ</button>
+      <button class="qopt" type="button">C · A list of association rules</button>
+      <p class="qwhy">R is factored into a user-factor matrix and an item-factor matrix sharing k latent dimensions. Their product reconstructs R and fills the blank cells.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · How is a single prediction computed once the factors are learned?</p>
+      <button class="qopt" type="button">A · By counting co-purchases</button>
+      <button class="qopt" type="button">B · By averaging the user's past ratings</button>
+      <button class="qopt" type="button">C · The dot product of the user's factor vector and the item's factor vector</button>
+      <p class="qwhy">predict(u,i) = U[u] · V[i]. It is high when a user's pulls on the latent factors line up with how strongly an item expresses them.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · Why does the <code>implicit</code> library expect a confidence-weighted sparse matrix?</p>
+      <button class="qopt" type="button">A · For implicit feedback a blank is a low-confidence zero, not a hard "dislike" - the weight encodes how sure the signal is</button>
+      <button class="qopt" type="button">B · Because it only works on star ratings</button>
+      <button class="qopt" type="button">C · To save memory, with no effect on the model</button>
+      <p class="qwhy">Implicit ALS (Hu, Koren &amp; Volinsky 2008) scales interactions into confidence. A repeated purchase is high confidence; a blank stays a zero but a weak one, so it can still score high.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Builder session 6 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Factorization</b><span>R ≈ U·Vᵀ - decompose the sparse matrix into user and item factor matrices.</span></div>
+      <div class="cheat-item"><b>Latent factors</b><span>k hidden taste dimensions the model learns; nobody labels them.</span></div>
+      <div class="cheat-item"><b>Prediction</b><span>dot product U[u] · V[i]; high when user pulls match item expression.</span></div>
+      <div class="cheat-item"><b>SVD vs ALS</b><span>SVD = classic linear algebra; ALS alternates user/item solves, scales to big implicit data.</span></div>
+      <div class="cheat-item"><b>Implicit = confidence</b><span>weight interactions (alpha); a blank is a low-confidence zero, not a dislike.</span></div>
+      <div class="cheat-item"><b>Netflix Prize</b><span>Koren 2009 + Funk SVD; the winner was an MF + RBM ensemble - we teach the MF core.</span></div>
+      <div class="cheat-item"><b>Weakness</b><span>opaque factors + cold-start on brand-new users/items. Pair with content-based (b5).</span></div>
+      <div class="cheat-item"><b>Next session</b><span>b7 - modern &amp; deep recsys: two-tower, DIN, MIND.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Builder session 6 of 10 · learn-recommendation-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="b7-modern-deep-recsys.html">Next: Modern &amp; deep recsys →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>
