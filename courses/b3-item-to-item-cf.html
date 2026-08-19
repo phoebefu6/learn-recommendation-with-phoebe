@@ -80,6 +80,32 @@
       <h2>Why item-to-item, and why it scaled the web</h2>
     </div>
     <p class="lede">Early recommenders compared users to users - but with tens of millions of users, that is slow and thrashes as people change. Amazon's insight in 2003 was to flip it: compare <em>items</em> to items. There are fewer items than users, item relationships are stable, and the expensive similarity computation can be done offline, leaving a fast lookup at request time. That is why "customers who bought this also bought" could run on every product page on the planet.</p>
+<figure class="zoomable">
+  <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Before and after panels contrasting user-to-user collaborative filtering, which compares tens of millions of changing users with similarity computed live and is slow, against item-to-item collaborative filtering, which compares far fewer stable items with similarity precomputed offline for fast lookup at request time.">
+    <style>
+      .rc1H{font:700 13px Inter,sans-serif;fill:#111634;}
+      .rc1B{font:400 12px Inter,sans-serif;fill:#111634;}
+      .rc1N{font:400 12px Inter,sans-serif;fill:#5B6480;}
+    </style>
+    <rect x="0" y="0" width="880" height="300" fill="#FFFFFF"/>
+
+    <rect x="40" y="50" width="390" height="180" rx="12" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+    <text class="rc1H" x="58" y="84">&#10007; User-to-user CF</text>
+    <text class="rc1B" x="58" y="114">Tens of millions of users</text>
+    <text class="rc1B" x="58" y="134">Similarity computed live</text>
+    <text class="rc1B" x="58" y="154">Slow, thrashes as people change</text>
+
+    <rect x="450" y="50" width="390" height="180" rx="12" fill="#BFDBFE" stroke="#1E3A8A" stroke-width="2"/>
+    <text class="rc1H" x="468" y="84">&#10003; Item-to-item CF</text>
+    <text class="rc1B" x="468" y="114">Far fewer items than users</text>
+    <text class="rc1B" x="468" y="134">Similarity precomputed offline</text>
+    <text class="rc1B" x="468" y="154">Fast lookup at request time</text>
+
+    <text class="rc1N" x="40" y="276">Amazon's 2003 insight: flip user-user into item-item, because item relationships stay stable.</text>
+  </svg>
+  <figcaption>🔍 Click to zoom - fewer, stabler items are why item-to-item CF scaled the web</figcaption>
+</figure>
+
     <div class="legend">
       <span class="pill solid">Live - presented in session</span>
       <span class="pill light">Self-study - read after class</span>
@@ -177,6 +203,35 @@ print(co["Yoga Mat"].sort_values(ascending=False).head(3))</div>
       <h2>Drive a real recommender: five algorithms, one shopper <span class="tag demo">★ 8 min · everyone plays</span></h2>
     </div>
     <p class="lede">This is not a mock-up - it computes real recommendations in your browser on a tiny Kirana catalog, with genuine cosine similarity, co-occurrence, content scoring, and precision@3 against a held-out relevant set. You are a fitness-leaning shopper who bought a Yoga Mat and Protein Powder. Flip between the algorithms and watch the recommendations, and the accuracy, change. Notice how popularity ignores you completely, and how item-item CF - the algorithm you just built - nails it.</p>
+<figure class="zoomable">
+  <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bar chart comparing precision at 3 for three recommenders on a fitness-leaning shopper: the popularity baseline scores 0 percent, while item-item collaborative filtering and content-based scoring both reach 100 percent.">
+    <style>
+      .rc2T{font:700 13px Inter,sans-serif;fill:#111634;}
+      .rc2L{font:600 12px Inter,sans-serif;fill:#111634;}
+      .rc2Vw{font:700 12px Inter,sans-serif;fill:#FFFFFF;}
+      .rc2Vi{font:700 12px Inter,sans-serif;fill:#111634;}
+      .rc2N{font:400 12px Inter,sans-serif;fill:#5B6480;}
+    </style>
+    <rect x="0" y="0" width="880" height="300" fill="#FFFFFF"/>
+    <text class="rc2T" x="40" y="28">Popularity ignores you; item-item CF and content-based nail it</text>
+
+    <text class="rc2L" x="240" y="74" text-anchor="end">Popularity baseline</text>
+    <rect x="260" y="55" width="10" height="30" rx="4" fill="#E4E9F2"/>
+    <text class="rc2Vi" x="280" y="75">0%</text>
+
+    <text class="rc2L" x="240" y="126" text-anchor="end">Item-item CF (built)</text>
+    <rect x="260" y="107" width="480" height="30" rx="6" fill="#2563EB"/>
+    <text class="rc2Vw" x="272" y="127">100%</text>
+
+    <text class="rc2L" x="240" y="178" text-anchor="end">Content-based</text>
+    <rect x="260" y="159" width="480" height="30" rx="6" fill="#60A5FA"/>
+    <text class="rc2Vw" x="272" y="179">100%</text>
+
+    <text class="rc2N" x="40" y="276">Popularity scores 0% precision for this shopper - it never looked at their two purchases.</text>
+  </svg>
+  <figcaption>🔍 Click to zoom - the algorithm you just built beats popularity by looking at what the shopper bought</figcaption>
+</figure>
+
 
     <div id="recsys-live"></div>
 

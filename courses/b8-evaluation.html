@@ -85,7 +85,7 @@
       <svg viewBox="0 0 880 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The metric ladder: offline ranking metrics like precision at k and NDCG feed online metrics like CTR and conversion, which feed business outcomes like revenue">
         <style>
           .b8lT { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
-          .b8lX { font: 400 11.5px Inter, sans-serif; fill: #DCE6FB; }
+          .b8lX { font: 400 11.5px Inter, sans-serif; fill: #EFF6FF; }
           .b8lI { font: 700 14px Inter, sans-serif; fill: #111634; }
           .b8lXi { font: 400 11.5px Inter, sans-serif; fill: #5B6480; }
           .b8lN { font: 600 13px Inter, sans-serif; fill: #6B0F3F; }
@@ -134,6 +134,32 @@
       <h2>Split by time, never at random <span class="tag concept">4 min live</span></h2>
     </div>
     <p class="lede">In most machine learning you shuffle and split randomly. For recommenders that is a bug. A random split can put a user's <em>future</em> purchase in the training set and their <em>past</em> in the test set - the model peeks at the answer. You must split by <strong>time</strong>: train on the past, test on the future, exactly as production will run.</p>
+<figure class="zoomable">
+  <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Before and after panels contrasting a random train and test split, which lets a user's future purchase leak into training and inflates the offline score, against a time-based split that trains on the past and tests on the future, giving an offline score that means something real.">
+    <style>
+      .rc4H{font:700 13px Inter,sans-serif;fill:#111634;}
+      .rc4B{font:400 12px Inter,sans-serif;fill:#111634;}
+      .rc4N{font:400 12px Inter,sans-serif;fill:#5B6480;}
+    </style>
+    <rect x="0" y="0" width="880" height="300" fill="#FFFFFF"/>
+
+    <rect x="40" y="50" width="390" height="180" rx="12" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+    <text class="rc4H" x="58" y="84">&#10007; Random split</text>
+    <text class="rc4B" x="58" y="114">Shuffles interactions randomly</text>
+    <text class="rc4B" x="58" y="134">Future purchase leaks into train</text>
+    <text class="rc4B" x="58" y="154">Offline score inflates, fails live</text>
+
+    <rect x="450" y="50" width="390" height="180" rx="12" fill="#BFDBFE" stroke="#1E3A8A" stroke-width="2"/>
+    <text class="rc4H" x="468" y="84">&#10003; Time-based split</text>
+    <text class="rc4B" x="468" y="114">Cut at one timestamp</text>
+    <text class="rc4B" x="468" y="134">Earlier trains, later tests</text>
+    <text class="rc4B" x="468" y="154">Offline score means something real</text>
+
+    <text class="rc4N" x="40" y="276">A random split lets tomorrow inform yesterday - the classic false win before an A/B test.</text>
+  </svg>
+  <figcaption>🔍 Click to zoom - split by time or the offline number is lying to you</figcaption>
+</figure>
+
 
     <details class="card">
       <summary><span class="mode live">Live</span>Why random splitting leaks - and what to do<span class="mini">2 min</span><span class="caret">▶</span></summary>
@@ -158,6 +184,35 @@
       <h2>Implement the metrics from scratch <span class="tag demo">★ 12 min · everyone builds</span></h2>
     </div>
     <p class="lede">Write precision@k, recall@k, and NDCG@k yourself on a ranked list versus a relevant set - the same YOU-versus-RELEVANT idea the b3 live recommender scored. No library; just the definitions, so the numbers are never a mystery.</p>
+<figure class="zoomable">
+  <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of a ranked list scored for precision at 3: rank 1 Yoga Mat is relevant, rank 2 Blender is not relevant, rank 3 Yoga Block is relevant, giving precision at 3 of two thirds, about 0.67.">
+    <style>
+      .rc3T{font:700 13px Inter,sans-serif;fill:#111634;}
+      .rc3L{font:600 12px Inter,sans-serif;fill:#111634;}
+      .rc3Vw{font:700 12px Inter,sans-serif;fill:#FFFFFF;}
+      .rc3Vi{font:700 12px Inter,sans-serif;fill:#111634;}
+      .rc3N{font:400 12px Inter,sans-serif;fill:#5B6480;}
+    </style>
+    <rect x="0" y="0" width="880" height="300" fill="#FFFFFF"/>
+    <text class="rc3T" x="40" y="28">Precision@3 for one shopper: 2 of 3 top slots are hits</text>
+
+    <text class="rc3L" x="240" y="74" text-anchor="end">Rank 1: Yoga Mat</text>
+    <rect x="260" y="55" width="480" height="30" rx="6" fill="#2563EB"/>
+    <text class="rc3Vw" x="272" y="75">relevant - hit</text>
+
+    <text class="rc3L" x="240" y="126" text-anchor="end">Rank 2: Blender</text>
+    <rect x="260" y="107" width="480" height="30" rx="6" fill="#FFFFFF" stroke="#5B6480" stroke-width="1.5"/>
+    <text class="rc3Vi" x="272" y="127">not relevant - miss</text>
+
+    <text class="rc3L" x="240" y="178" text-anchor="end">Rank 3: Yoga Block</text>
+    <rect x="260" y="159" width="480" height="30" rx="6" fill="#2563EB"/>
+    <text class="rc3Vw" x="272" y="179">relevant - hit</text>
+
+    <text class="rc3N" x="40" y="276">Precision@3 = hits in top 3 / 3 = 2/3 = 0.67 - the number the b3 recommender's meter animated.</text>
+  </svg>
+  <figcaption>🔍 Click to zoom - precision at 3 just counts hits in the top 3 slots</figcaption>
+</figure>
+
 
     <div class="steps">
       <div class="step"><p>Represent a recommendation as an ordered list of item ids, and the truth as a set of relevant items.</p></div>
